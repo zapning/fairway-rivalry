@@ -1,0 +1,128 @@
+<!--
+  Fairway Golf League — Magic Link email template.
+  Paste this HTML into:
+    Supabase Dashboard → Authentication → Email Templates → Magic Link
+    (also recommended for "Confirm signup")
+
+  Available variables:
+    {{ .ConfirmationURL }} — sign-in link
+    {{ .Email }}           — recipient email
+    {{ .Token }}           — OTP (optional fallback)
+
+  Subject line suggestion:
+    Subject: Your sign-in link — Fairway Golf League
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in to Fairway Golf League</title>
+</head>
+<body style="margin:0;padding:0;background:#060d0a;font-family:Georgia, 'Times New Roman', serif;color:#e8e3d5;">
+  <div style="background:#060d0a;padding:32px 16px;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="560"
+      style="max-width:560px;background:linear-gradient(180deg,#0b1612 0%,#070f0c 100%);
+             border:1px solid rgba(201,169,97,0.35);border-radius:18px;overflow:hidden;
+             box-shadow:0 12px 40px rgba(0,0,0,0.4);">
+      <!-- HEADER -->
+      <tr>
+        <td style="padding:32px 32px 24px 32px;text-align:center;border-bottom:1px solid rgba(201,169,97,0.18);">
+          <!-- Inline SVG monogram (gold) -->
+          <div style="margin-bottom:14px;">
+            <svg width="56" height="56" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#f5e3a0"/>
+                  <stop offset="60%" stop-color="#c9a961"/>
+                  <stop offset="100%" stop-color="#7a6132"/>
+                </linearGradient>
+              </defs>
+              <g fill="none" stroke="url(#g)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 16 12 L 16 52"/>
+                <path d="M 16 12 L 44 12"/>
+                <path d="M 16 30 L 38 30"/>
+                <path d="M 32 38 L 50 38 L 50 54"/>
+                <circle cx="50" cy="14" r="3" fill="url(#g)" stroke="none"/>
+              </g>
+            </svg>
+          </div>
+          <div style="font-family:Georgia,serif;color:#f5e3a0;font-size:22px;letter-spacing:0.04em;font-weight:700;">
+            Fairway Golf League
+          </div>
+          <div style="font-size:11px;letter-spacing:0.32em;color:#8a7340;text-transform:uppercase;margin-top:6px;">
+            Where rivalries play out
+          </div>
+        </td>
+      </tr>
+
+      <!-- BODY -->
+      <tr>
+        <td style="padding:36px 32px 18px 32px;">
+          <h1 style="margin:0 0 14px 0;color:#f0eee5;font-family:Georgia,serif;font-size:28px;font-weight:700;letter-spacing:-0.01em;line-height:1.2;">
+            Welcome to the Clubhouse
+          </h1>
+          <p style="margin:0 0 24px 0;color:#b8b3a5;font-family:Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;">
+            Tap the button below to sign in. This link only works on the device you opened your email on, and it expires in one hour.
+          </p>
+
+          <!-- CTA Button -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%">
+            <tr>
+              <td align="center">
+                <a href="{{ .ConfirmationURL }}"
+                   style="display:inline-block;padding:16px 36px;background:linear-gradient(180deg,#f5e3a0 0%,#c9a961 60%,#a08543 100%);
+                          color:#07140d;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;
+                          letter-spacing:0.12em;text-transform:uppercase;border-radius:10px;
+                          box-shadow:0 6px 20px rgba(201,169,97,0.25);">
+                  Sign in to Fairway
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin:28px 0 0 0;color:#7a7468;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;text-align:center;">
+            Button not working? Copy and paste this URL into your browser:<br>
+            <a href="{{ .ConfirmationURL }}" style="color:#c9a961;word-break:break-all;">{{ .ConfirmationURL }}</a>
+          </p>
+        </td>
+      </tr>
+
+      <!-- TEASER PANEL -->
+      <tr>
+        <td style="padding:16px 32px 32px 32px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+            style="background:rgba(201,169,97,0.06);border:1px solid rgba(201,169,97,0.22);border-radius:12px;">
+            <tr>
+              <td style="padding:18px 20px;">
+                <div style="font-size:10px;letter-spacing:0.32em;color:#8a7340;text-transform:uppercase;margin-bottom:6px;font-family:Helvetica,Arial,sans-serif;font-weight:700;">
+                  Inside the Clubhouse
+                </div>
+                <div style="color:#e8e3d5;font-family:Helvetica,Arial,sans-serif;font-size:13.5px;line-height:1.7;">
+                  • Track every round, every rival, every comeback.<br>
+                  • Build a Tour with up to <strong style="color:#c9a961;">8 friends</strong>.<br>
+                  • Watch the Clubhouse fill with your story as you play.
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- FOOTER -->
+      <tr>
+        <td style="padding:18px 32px 28px 32px;text-align:center;border-top:1px solid rgba(201,169,97,0.12);">
+          <p style="margin:0;color:#6b6558;font-family:Helvetica,Arial,sans-serif;font-size:11px;line-height:1.6;">
+            You're receiving this because someone (probably you) signed in at
+            <a href="https://fairwayrivalry.com" style="color:#8a7340;text-decoration:none;">fairwayrivalry.com</a>.<br>
+            Didn't request this? Just ignore — no account is created unless you tap the link.
+          </p>
+          <p style="margin:14px 0 0 0;color:#3d3a33;font-family:Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;">
+            Fairway Golf League · 2026
+          </p>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
