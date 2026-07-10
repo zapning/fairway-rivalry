@@ -551,3 +551,17 @@ Følgende formuleringer er ikke bevis:
 - «Ferdig» uten samme source hash i gate og build
 - «Bare cache» uten build-ID-verifisering
 
+
+## 22. Globale app-invarianter (gjelder ALLE sider — permanente regler)
+
+Disse er permanente og gjelder hele appen, ikke bare Clubhouse. En enkelt side skal aldri definere disse for hele appen.
+
+- **Header:** testes separat mot godkjent header-referanse på hver side (egen golden snapshot), ikke bare som del av et fullside-bilde. Aktiv fane i gull + gull-understrek; ingen grønn aktiv-markering; header transparent når referansen krever det.
+- **Mobilbredde (permanent global regel):** appen skal ALLTID passe tilgjengelig mobilbredde uten horisontal scroll. **Eksakt app-shell maks-bredde er IKKE fastsatt permanent** — dagens `min(100vw, 430px)` er merket *existing implementation / provisional / pending product approval* (se `design/tokens/fairway.tokens.json` → `appShell.maxWidth_css_px`). Fremtidige sider skal ikke låses til 430 px.
+- **Safe-area + dynamisk viewport:** bruk `env(safe-area-inset-*)` og `dvh` (ikke `vh`). Nettleserens adresselinje, systemfelt eller notch skal ALDRI kutte innhold eller skape overlapp.
+- **Horisontal scroll er ALDRI tillatt** på noen side: `document.scrollWidth <= clientWidth + 1`, og ingen enkeltelement stikker utenfor viewport-bredden. Bevisst horisontal scroll er kun tillatt inne i en navngitt komponent (karusell) når en testprofil sier det eksplisitt.
+- **Ingen helsideskalering:** `transform: scale(...)`, `zoom` eller global CSS-transform på root/app/side/dashboard er forbudt for å «presse inn» layout.
+- **Visuell testing er påkrevd** for hver side: komponent-snapshots (minst header) + fullside/viewport-snapshots, i tillegg til strukturelle og layout-invariante tester. En grønn overflow-test alene godkjenner aldri en side.
+- **Sidespesifikke krav** dokumenteres som korte **testprofiler** i `docs/app-machine/PAGE-TEST-PROFILES.md` — ikke som ferdige produkt-/designkontrakter. En full screen contract (mal + godkjent referanse) kreves bare når en side skal gjennom en vesentlig designendring.
+
+> **PÅKREVD LESING:** ved enhver UI-, test- eller release-oppgave skal `docs/app-machine/PAGE-TEST-PROFILES.md` leses sammen med denne fila. Den er en obligatorisk del av lesekjeden (jf. `CLAUDE.md` §0).

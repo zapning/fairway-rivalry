@@ -1,17 +1,20 @@
 # Åpne prosjektbeslutninger
 
 Register over beslutninger som må tas av Mathias før berørt arbeid kan godkjennes.
-Ingen av disse skal «løses» av agenten på egen hånd. De skal ikke presse fram et valg nå.
 
-## #1 — Clubhouse scroll-policy (ÅPEN)
+## #1 — Clubhouse scroll-policy — **RESOLVED (2026-07-10, Mathias)**
 
-- Registrert: 2026-07-10
-- Status: **ÅPEN** — ikke avklart. Ikke be Mathias velge nå; ikke endre Clubhouse-koden.
-- Berører: `design/contracts/clubhouse-default.md` (§4), all fremtidig Clubhouse-UI.
-- Konflikt:
-  - Ny grunnlov (CLAUDE.md §3 + PROJECT-FACTS §12): Clubhouse = `vertical-content` (skal scrolle, aldri miniatyriseres, ingen root-skalering).
-  - Dagens kode: `single-screen` contain-fit — hele `.chd` skaleres ned for å passe én skjerm (mønsteret UI-QUALITY-SYSTEM §1/§9 er laget for å stoppe).
-- Alternativer (kun for referanse, ikke et spørsmål nå):
-  - (A) Behold single-screen → endre grunnlov + dimensjonér bokser responsivt uten global nedskalering, hold lesbar minstestørrelse.
-  - (B) Gjør Clubhouse `vertical-content` → boksene beholder lesbar/premium størrelse, siden scroller.
-- Konsekvens til beslutning tas: `clubhouse-default.md` forblir DRAFT/BLOCKED; ingen Clubhouse-UI-endring godkjennes.
+Erstatter den tidligere uløste konflikten (single-screen vs. vertical-content).
+Bindende responsiv policy for Clubhouse:
+
+1. På referanseviewportene **390×844** og **412×915**, i installert PWA / full tilgjengelig viewport, skal Clubhouse **som mål** kunne vises uten nødvendig vertikal sidescroll og visuelt følge den godkjente fullside-referansen.
+2. På kortere/mindre skjermer, i nettlesermodus med redusert tilgjengelig høyde, ved stor tekst, eller når safe-area reduserer plassen, skal **naturlig vertikal scroll tillates**.
+3. **Lesbarhet, riktige proporsjoner og minimum trykkflater har alltid prioritet** over kravet om én skjerm.
+4. **Forbudt:** global `transform: scale(...)`, `zoom` eller annen helsideskalering for å tvinge dashboardet inn på skjermen.
+5. **Horisontal scroll er aldri tillatt.**
+6. Komponentene skal **reflowe eller bruke naturlig dokumenthøyde** på kompakte skjermer. Header eller innhold skal ikke overlappe hverandre.
+7. Bruk dynamisk viewport (`dvh`) og `safe-area` korrekt. Nettleserens adresselinje eller systemfelt skal ikke føre til at innhold blir kuttet.
+
+Begrunnelse: målet «alt på én skjerm» beholdes der plassen finnes (referansetelefoner/PWA), men aldri på bekostning av lesbarhet, proporsjon eller trykkflate; helsideskalering (dagens contain-fit-mønster) er eksplisitt forbudt og skal erstattes av responsiv reflow når Clubhouse implementeres på nytt.
+
+Konsekvens: `design/contracts/clubhouse-default.md` §4 er oppdatert med denne policyen. Kontrakten forblir **DRAFT (ikke endelig APPROVED)** til tokenene er ferdig kontrollert (typografiskala gjenstår).

@@ -250,3 +250,13 @@ Disse er operative detaljer som skal gjelde inntil release-gaten i `UI-QUALITY-S
 - Siste bygde deploy-ID: `build 2607101514`. Auto-oppdatereren avregistrerer service worker + tømmer cache ved versjonsmismatch og laster på nytt.
 - Godkjente referanser: `design/reference/clubhouse/approved-clubhouse-fullpage-390.png` (Dashboard V2, 853-bred design-space mockup som representerer 390-målet) og `design/reference/header/approved-header-853x293.png` (Header.png). Screen contract: `design/contracts/clubhouse-default.md`.
 - Denne baseline er en *implementasjon*, ikke en ny universell regel. Endres den, må screen contract og godkjent referanse oppdateres i egen commit (UI-QUALITY-SYSTEM §20).
+
+## 24. Sidenes nåværende produktstatus (produktfakta)
+
+Kort faktastatus for hva hovedsidene *er* i dag. Test- og layoutregler ligger i
+`PAGE-TEST-PROFILES.md` (sidespesifikt) og `UI-QUALITY-SYSTEM.md` §22 (globalt); dette er kun produktfakta.
+
+- **Clubhouse:** en av flere hovedsider (Dashboard V2 / Bokser V3). Har egen screen contract (`design/contracts/clubhouse-default.md`). Skal ikke definere reglene for hele appen.
+- **Tee Off:** tre-stegs rundeflyt — Set up → Course → Scorecard. Scorecard støtter 1–4 spillere (1 = større/luftigere, 4 = mer kompakt).
+- **Rivalry:** kort/roster-side; bakgrunnen bak boksene skal være helt transparent (ingen mørke overlay-lag).
+- **FGL:** foreløpig kun et bilde/placeholder. Ingen funksjonalitet er bygget ennå og skal ikke bygges nå.

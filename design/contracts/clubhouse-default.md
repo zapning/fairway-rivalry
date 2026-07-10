@@ -10,7 +10,7 @@
 - State: default innlogget bruker
 - Version: 0.1
 - Owner: Mathias
-- Status: `DRAFT / BLOCKED`  ← IKKE approved. Blokkert av åpen prosjektbeslutning: scroll-policy (se `docs/app-machine/OPEN-DECISIONS.md` #1 og §4). Skal ikke godkjennes mens dette er uavklart.
+- Status: `DRAFT`  ← ikke endelig APPROVED. Scroll-policy er RESOLVED (beslutning #1, se §4). Gjenstår kun: ferdig token-kontroll (typografiskala). Settes ikke til APPROVED før det er gjort.
 - Approved by: —
 - Approved date: —
 
@@ -33,17 +33,19 @@
 
 Referansen er visuell retning + proporsjonsfasit for boksene, ikke pixel-fasit for dynamiske verdier.
 
-## 4. Scroll-policy  ← KONFLIKT MÅ AVKLARES
+## 4. Scroll-policy — RESOLVED (beslutning #1, 2026-07-10)
 
-- Ny grunnlov (CLAUDE.md §3 + PROJECT-FACTS §12): **Clubhouse = `vertical-content`**. Den skal aldri miniatyriseres for å få alt inn over bretten, og root/dashboard skal ikke skaleres.
-- Nåværende implementasjon: **`single-screen` via contain-fit** — hele `.chd` skaleres ned med `width: min(100%, (100dvh - headerline) * 853/1515)` så alt passer én skjerm uten scroll.
-- Dette er nettopp mønsteret det nye kvalitetssystemet er laget for å stoppe («hele dashboardet ble presset inn på skjermen», UI-QUALITY-SYSTEM §1 og §9).
+Bindende responsiv policy (erstatter den tidligere konflikten):
 
-**Beslutning kreves fra Mathias før implementering:**
-- (A) Behold Dashboard V2 som ÉN skjerm (single-screen). Da må CLAUDE.md §3/PROJECT-FACTS §12 endres til å tillate at Clubhouse er single-screen, og boksene må dimensjoneres responsivt (ikke via global nedskalering av `.chd`) så tekst holder lesbar minstestørrelse.
-- (B) Gjør Clubhouse til `vertical-content`: boksene beholder lesbar/premium størrelse og siden scroller vertikalt. Da matcher den den nye grunnloven, men avviker fra «alt på én skjerm».
+1. På referanseviewportene **390×844** og **412×915**, i installert PWA / full tilgjengelig viewport, skal Clubhouse **som mål** vises uten nødvendig vertikal sidescroll og visuelt følge godkjent fullside-referanse.
+2. På kortere/mindre skjermer, nettlesermodus med redusert høyde, stor tekst, eller når safe-area reduserer plassen: **naturlig vertikal scroll tillates**.
+3. **Lesbarhet, riktige proporsjoner og minimum trykkflater har alltid prioritet** over én-skjerm-kravet.
+4. **Forbudt:** global `transform: scale(...)`, `zoom` eller annen helsideskalering (dagens contain-fit-mønster skal fjernes ved reimplementering).
+5. **Horisontal scroll er aldri tillatt.**
+6. Komponentene skal **reflowe / bruke naturlig dokumenthøyde** på kompakte skjermer; header og innhold skal ikke overlappe.
+7. Bruk `dvh` og `safe-area` korrekt; adresselinje/systemfelt skal ikke kutte innhold.
 
-Inntil dette er avklart forblir kontrakten `draft`.
+Effektiv scroll-policy: **adaptiv** — `single-screen` som *mål* på referansetelefoner/PWA (uten skalering), ellers `vertical-content`. Se `docs/app-machine/OPEN-DECISIONS.md` #1.
 
 ## 5. App-shell og viewport
 
@@ -92,7 +94,7 @@ Gjensidig eksklusivt: kun ÉN slot for «egen runde i gang / rival spiller nå /
 - Titler: bakt inn i boksbildene (Playfair-lignende gull-caps).
 - Verdier: `Playfair Display` serif (`.chd-serif`), gull for Record (`.chd-gold`).
 - Etiketter/subtekst: `Inter` (`.chd-lab`), hvit ~85 %.
-- Minimum lesbar størrelse: må defineres i tokens; verdier/etiketter skal ikke krympes under dette for å passe høyde (relevant for scroll-policy-beslutningen i §4).
+- Minimum lesbar størrelse: se tokens (brødtekst ≥14, nav/kortetikett ≥12, mikroetikett 11 kun sekundær/ikke-interaktiv). Tekst skal aldri krympes under dette for å passe høyde (jf. §4 punkt 3).
 
 ## 10. Transparens og effekter
 

@@ -1,0 +1,242 @@
+{
+  "_meta": {
+    "name": "Fairway Rivalry design tokens",
+    "version": "0.2-draft",
+    "status": "DRAFT — kvalitetskrav (touch/typografi-min/radius) er godkjent. Komplett typografisk SKALA er fortsatt provisorisk (venter egen visuell tokenkontroll). Kontrakten settes ikke til endelig APPROVED før skalaen er kontrollert.",
+    "updated": "2026-07-10",
+    "source_of_truth": [
+      "design/reference/clubhouse/approved-clubhouse-fullpage-390.png (Dashboard V2, 853x1844 design-space)",
+      "design/reference/header/approved-header-853x293.png (Header.png)",
+      "eksisterende live-implementasjon (styles.css)",
+      "Mathias' godkjente kvalitetskrav 2026-07-10"
+    ],
+    "design_space_note": "Mockup 853 px design-space representerer telefonmål ~390-430 CSS-px. Layout i PROSENT er skala-uavhengig. CSS-px-verdier under er faktiske CSS-piksler.",
+    "class_legend": {
+      "approved-quality-requirement": "godkjent bindende kvalitetskrav (Mathias)",
+      "measured-design-reference": "målt fra godkjent design (Dashboard V2 / Header.png)",
+      "existing-implementation": "fra eksisterende implementasjon (styles.css) — ikke automatisk godkjent design-token",
+      "provisional-value": "provisorisk — venter egen visuell tokenkontroll"
+    }
+  },
+  "typographyMinimums_css_px": {
+    "body": {
+      "value": 14,
+      "class": "approved-quality-requirement",
+      "note": "standard brødtekst minimum"
+    },
+    "navAndCardLabel": {
+      "value": 12,
+      "class": "approved-quality-requirement",
+      "note": "standard navigasjons- og kortetiketter minimum"
+    },
+    "microLabelMax": {
+      "value": 11,
+      "class": "approved-quality-requirement",
+      "scope": "KUN ikke-kritisk, ikke-interaktiv sekundærtekst",
+      "forbidden": "interaktive etiketter og viktig tekst skal ALDRI bruke mikroetikettgrensen"
+    }
+  },
+  "interaction": {
+    "minTouchTarget_css_px": {
+      "value": 44,
+      "class": "approved-quality-requirement"
+    }
+  },
+  "radius_css_px": {
+    "standardCard_at390": {
+      "value": 10,
+      "class": "approved-quality-requirement",
+      "note": "standard kortradius ved 390-viewport"
+    },
+    "heroRecordCard": {
+      "value": 12,
+      "class": "approved-quality-requirement",
+      "note": "store hero-/Record-kort"
+    }
+  },
+  "typographyScale": {
+    "_status": "PROVISIONAL — ikke låst fra rasterbildene",
+    "families": {
+      "serif": {
+        "value": "Playfair Display, Georgia, serif",
+        "class": "existing-implementation",
+        "note": "titler + verdier"
+      },
+      "sans": {
+        "value": "Inter, system-ui, sans-serif",
+        "class": "existing-implementation",
+        "note": "etiketter + subtekst"
+      }
+    },
+    "heroNumbers": {
+      "value": "ikke låst",
+      "class": "provisional-value",
+      "pendingApproval": true,
+      "note": "Record «3-1» / store hero-tall — egen visuell tokenkontroll"
+    },
+    "dynamicHeadings": {
+      "value": "ikke låst",
+      "class": "provisional-value",
+      "pendingApproval": true
+    },
+    "responsiveFontSizes": {
+      "value": "cqw-basert i live; eksakt px-skala ikke låst",
+      "class": "provisional-value",
+      "pendingApproval": true
+    }
+  },
+  "appShell": {
+    "maxWidth_css_px": {
+      "value": 430,
+      "class": "existing-implementation",
+      "provisional": true,
+      "pendingApproval": true,
+      "note": "PENDING PRODUCT APPROVAL. Dagens live-verdi min(100vw,430px). Permanent global regel er kun: appen skal alltid passe tilgjengelig mobilbredde uten horisontal scroll; eksakt maks-bredde avgjøres senere. Ikke lås fremtidige sider til 430."
+    },
+    "sideGutter_pct": {
+      "value": 3.28,
+      "class": "measured-design-reference",
+      "note": "28px av 853 (venstre), 25px høyre"
+    }
+  },
+  "grid": {
+    "navRow": {
+      "columns": {
+        "value": 6,
+        "class": "measured-design-reference"
+      },
+      "gap_designpx": {
+        "value": 13,
+        "class": "measured-design-reference"
+      },
+      "boxAspect": {
+        "value": "121x156",
+        "class": "measured-design-reference"
+      }
+    },
+    "statRow": {
+      "columns": {
+        "value": 4,
+        "class": "measured-design-reference"
+      },
+      "gap_designpx": {
+        "value": 13,
+        "class": "measured-design-reference",
+        "note": "målt 12-14"
+      },
+      "leftBoxWidth_designpx": {
+        "value": 168,
+        "class": "measured-design-reference",
+        "note": "venstre kolonne smalere"
+      },
+      "otherBoxWidth_designpx": {
+        "value": 191,
+        "class": "measured-design-reference",
+        "note": "målt 190-193"
+      }
+    },
+    "verticalRhythm_designpx": {
+      "value": 18,
+      "class": "measured-design-reference",
+      "note": "målt 17-21"
+    }
+  },
+  "header": {
+    "aspectRatio": {
+      "value": "853:293",
+      "class": "measured-design-reference"
+    },
+    "navIcons": {
+      "value": true,
+      "class": "measured-design-reference",
+      "note": "ikon over etikett, 5 faner"
+    },
+    "profile": {
+      "value": "top-right",
+      "class": "measured-design-reference"
+    },
+    "heightPolicy": {
+      "value": "content-driven (auto)",
+      "class": "existing-implementation"
+    },
+    "transparent": {
+      "value": true,
+      "class": "existing-implementation"
+    }
+  },
+  "color": {
+    "gold": {
+      "value": "#C9A961",
+      "class": "existing-implementation"
+    },
+    "goldBright": {
+      "value": "#E1C47E",
+      "class": "existing-implementation"
+    },
+    "goldDim": {
+      "value": "#7A6740",
+      "class": "existing-implementation"
+    },
+    "goldFrameAvg": {
+      "value": "#BC8A42",
+      "class": "measured-design-reference",
+      "note": "snitt gull-ramme, Bokser V3"
+    },
+    "goldShine": {
+      "value": "#FFF0A1",
+      "class": "measured-design-reference",
+      "note": "lyseste gull-piksel"
+    },
+    "activeTabText": {
+      "value": "#F3D879",
+      "class": "existing-implementation"
+    },
+    "activeTabUnderline": {
+      "value": "#F2B70E",
+      "class": "existing-implementation"
+    },
+    "valueGold": {
+      "value": "#EAD1A1",
+      "class": "existing-implementation"
+    },
+    "accentGreen": {
+      "value": "#5A9276",
+      "class": "existing-implementation",
+      "note": "skal IKKE brukes som aktiv header-markering"
+    },
+    "accentGreenBright": {
+      "value": "#7EB59A",
+      "class": "existing-implementation"
+    },
+    "textSerifValue": {
+      "value": "#F3EFEB",
+      "class": "existing-implementation"
+    },
+    "textLabel": {
+      "value": "#FBFBFA",
+      "class": "existing-implementation",
+      "note": "~85% opasitet"
+    }
+  },
+  "transparency": {
+    "boxInteriorAlpha": {
+      "value": 0.8,
+      "class": "existing-implementation",
+      "note": "~20% transparent interiør"
+    },
+    "recordBoxOpaque": {
+      "value": true,
+      "class": "existing-implementation"
+    },
+    "alwaysOpaque": {
+      "value": [
+        "gullrammer",
+        "ikoner",
+        "illustrasjoner",
+        "verdier",
+        "hvit tekst"
+      ],
+      "class": "existing-implementation"
+    }
+  }
+}

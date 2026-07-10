@@ -6,15 +6,17 @@
 @docs/app-machine/UI-QUALITY-SYSTEM.md
 @docs/app-machine/SCREEN-CONTRACT-TEMPLATE.md
 @docs/app-machine/BUILD-PLAN.md
+@docs/app-machine/PAGE-TEST-PROFILES.md
 
 ## 0. Påkrevd lesing (håndhevet)
 
-`@`-importene over laster disse fire dokumentene automatisk i Claude Code. I Cowork/andre miljøer der import ikke ekspanderes automatisk: **åpne filene med Read-verktøyet før du endrer kode** når oppgaven gjelder UI, layout, header, testing, kvalitet eller release. De er like bindende som denne filen:
+`@`-importene over laster disse fem dokumentene automatisk i Claude Code. I Cowork/andre miljøer der import ikke ekspanderes automatisk: **åpne filene med Read-verktøyet før du endrer kode** når oppgaven gjelder UI, layout, header, testing, kvalitet eller release. De er like bindende som denne filen:
 
 - `docs/app-machine/PROJECT-FACTS.md` — prosjektfakta, filstruktur, sikker redigering, build/deploy, testverktøy, gjeldende baseline.
 - `docs/app-machine/UI-QUALITY-SYSTEM.md` — kvalitetsporter, roller, bevispakke, release-gate (fasit for testing og godkjenning).
 - `docs/app-machine/SCREEN-CONTRACT-TEMPLATE.md` — mal for screen contract; en kontrakt kreves før vesentlige UI-endringer.
 - `docs/app-machine/BUILD-PLAN.md` — rekkefølgen app-maskinen skal bygges i.
+- `docs/app-machine/PAGE-TEST-PROFILES.md` — sidespesifikke testprofiler (Tee Off, Rivalry, FGL) + peker til Clubhouse-kontrakt. Obligatorisk ved UI-, test- og release-arbeid.
 
 Historikk fra den tidligere prosjekt-briefen er bevart ordrett i `docs/app-machine/LEGACY-CLAUDE-2026-07.md`, og konkrete operative detaljer + gjeldende baseline i `PROJECT-FACTS.md` §22–23.
 
