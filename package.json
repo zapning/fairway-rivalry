@@ -1,0 +1,20 @@
+{
+  "name": "fairway-rivalry",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:dist": "node build-dist.mjs",
+    "serve:test": "node build-dist.mjs && node serve-dist.mjs 3100",
+    "test:ui": "playwright test -c playwright.config.ts",
+    "test:ui:report": "playwright show-report playwright-report/ui",
+    "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report"
+  },
+  "dependencies": {
+    "pdf-parse": "^2.4.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "serve": "14.2.6"
+  }
+}

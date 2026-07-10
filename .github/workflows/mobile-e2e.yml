@@ -1,0 +1,41 @@
+name: UI foundation (Chromium + WebKit)
+
+# Autoritativt UI-testfundament (BUILD-PLAN trinn 3).
+# Kjører KUN tests/ui/** via playwright.config.ts. Deterministisk: npm ci, låst Node,
+# Chromium + WebKit fra samme Playwright-versjon, workers 1, fullyParallel false (fra config).
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ui-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lås Node-versjon
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.18.0'
+
+      - name: Installer deps (deterministisk)
+        run: npm ci
+
+      - name: Installer Playwright-browsere (Chromium + WebKit, samme versjon)
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Kjør autoritativt UI-fundament (bygger dist + serverer via config)
+        run: npm run test:ui
+
+      - name: Last opp rapport + artefakter
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-foundation-report
+          path: |
+            playwright-report/ui/
+            test-results/ui/
+          retention-days: 30
