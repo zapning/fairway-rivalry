@@ -9,36 +9,131 @@
    Future phases: sync rounds, friends, rivalries.
    ============================================================ */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.108.2";
 
 const SUPABASE_URL = "https://rrsiscdnyprcwcmfnsrg.supabase.co";
 // Publishable key: safe to expose in the browser.
 const SUPABASE_KEY = "sb_publishable_CkcCvMPBvBRiMuxy5TRJuw_OPo6wUqq";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+// CRITICAL FIX: in supabase-js 2.108 on this page the internal auth client's
+// getSession() — which every PostgREST query awaits to attach the bearer token —
+// deadlocks (two GoTrueClients race on the same storage key at page load), so
+// every db call silently hangs forever (rounds, friends, rivalries, search).
+// Fix: split into two clients.
+//   • authClient — the ONE auth client (magic link, session, login/logout events)
+//   • dbClient   — all db/rpc calls; gets the access token straight from storage
+//                  via the `accessToken` option, so it NEVER calls getSession().
+// A small facade keeps the rest of the bridge using `supabase.from/.rpc/.auth`.
+function authStorageKey() {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.includes("auth-token")) return k;
+    }
+  } catch (e) {}
+  return null;
+}
+function storedSession() {
+  try {
+    const k = authStorageKey();
+    if (!k) return null;
+    const v = JSON.parse(localStorage.getItem(k));
+    // supabase-js may store the session directly or under currentSession
+    return (v && v.access_token) ? v : (v && v.currentSession) ? v.currentSession : null;
+  } catch (e) { return null; }
+}
+function tokenFromStorage() { const s = storedSession(); return s ? s.access_token || null : null; }
+function userFromToken() {
+  const t = tokenFromStorage();
+  if (!t) return null;
+  try { const p = JSON.parse(atob(t.split(".")[1])); return { id: p.sub, email: p.email || null }; } catch (e) { return null; }
+}
+
+// Manual token refresh — the auth client's own auto-refresh never starts on this
+// page (its init is the thing that deadlocks), so without this every session
+// would break ~1h in with "JWT expired". We refresh straight against the token
+// endpoint and write the new session back so dbClient picks it up.
+let _refreshing = null;
+function refreshToken() {
+  if (_refreshing) return _refreshing;
+  const s = storedSession();
+  const rt = s && s.refresh_token;
+  if (!rt) return Promise.resolve(false);
+  _refreshing = (async () => {
+    try {
+      const res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
+        body: JSON.stringify({ refresh_token: rt }),
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (!data || !data.access_token) return false;
+      if (!data.expires_at && data.expires_in) data.expires_at = Math.floor(Date.now() / 1000) + data.expires_in;
+      const k = authStorageKey() || ("sb-" + SUPABASE_URL.split("//")[1].split(".")[0] + "-auth-token");
+      const prev = (() => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { return {}; } })();
+      localStorage.setItem(k, JSON.stringify(Object.assign(prev, data)));
+      return true;
+    } catch (e) { return false; } finally { _refreshing = null; }
+  })();
+  return _refreshing;
+}
+// Returns a valid (refreshed-if-needed) access token. Used for every db call.
+async function freshAccessToken() {
+  const s = storedSession();
+  if (!s) return null;
+  const exp = s.expires_at || 0;
+  if (exp && exp < Math.floor(Date.now() / 1000) + 60) {
+    await refreshToken();
+    const s2 = storedSession();
+    return s2 ? s2.access_token : null;
+  }
+  return s.access_token || null;
+}
+
+const authClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true },
 });
+const dbClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  accessToken: async () => await freshAccessToken(),
+});
+// Belt-and-suspenders: also refresh proactively every 4 min while the tab lives.
+setInterval(() => { const s = storedSession(); if (s && s.expires_at && s.expires_at < Math.floor(Date.now() / 1000) + 120) refreshToken(); }, 240000);
+// Facade: auth ops -> authClient; data/realtime ops -> the deadlock-proof clients.
+const supabase = {
+  auth: authClient.auth,
+  from: (...a) => dbClient.from(...a),
+  rpc: (...a) => dbClient.rpc(...a),
+  channel: (...a) => authClient.channel(...a),
+  removeChannel: (...a) => authClient.removeChannel(...a),
+  getChannels: () => authClient.getChannels(),
+  storage: dbClient.storage,
+};
+globalThis.__fairwaySupabase = supabase;
 
 // Track current user state
 let currentSession = null;
 let currentProfile = null;
+let currentAuthEvent = null;
 const listeners = new Set();
 function notify() { listeners.forEach(fn => { try { fn(currentSession, currentProfile, currentAuthEvent); } catch(e) { console.error(e); } }); }
 
-// Restore session on load
-supabase.auth.getSession().then(({ data }) => {
-  currentSession = data.session;
-  if (currentSession) loadProfile().then(notify);
-  else notify();
-});
+// Seed the session straight from storage so API methods (which guard on
+// currentSession) work immediately, even before the auth client finishes init.
+(function seedSession() {
+  const tok = tokenFromStorage();
+  const u = userFromToken();
+  if (tok && u) { currentSession = { access_token: tok, user: u }; loadProfile().then(notify); }
+})();
 
-// React to login/logout events
-let currentAuthEvent = null;
-supabase.auth.onAuthStateChange(async (event, session) => {
+// Keep the session in sync with real auth events (magic-link login, logout).
+authClient.auth.getSession().then(({ data }) => {
+  if (data && data.session) { currentSession = data.session; loadProfile().then(notify); }
+}).catch(() => {});
+authClient.auth.onAuthStateChange(async (event, session) => {
   currentAuthEvent = event;
-  currentSession = session;
-  if (session && !currentProfile) await loadProfile();
-  else if (!session) currentProfile = null;
+  if (session) { currentSession = session; if (!currentProfile) await loadProfile(); }
+  else if (event === "SIGNED_OUT") { currentSession = null; currentProfile = null; }
   notify();
 });
 
@@ -125,6 +220,16 @@ window.fairwayCloud = {
 
   // Courses (read all, from cloud)
   fetchCourses: async ({ search = "", country = "", limit = 50 } = {}) => {
+    // Primary path: locked-down search RPC (returns capped results; no bulk dump).
+    try {
+      const r = await supabase.rpc("search_courses", { p_query: search || "", p_limit: Math.min(limit || 20, 30) });
+      if (!r.error && Array.isArray(r.data)) {
+        let data = r.data;
+        if (country) data = data.filter(c => (c.country || "") === country);
+        return { data, error: null };
+      }
+    } catch (e) {}
+    // Fallback (pre-lockdown): direct table read.
     let q = supabase.from("courses").select("*").limit(limit);
     if (search) q = q.ilike("name", `%${search}%`);
     if (country) q = q.eq("country", country);
@@ -133,6 +238,11 @@ window.fairwayCloud = {
   },
 
   fetchCourseById: async (id) => {
+    try {
+      const r = await supabase.rpc("get_course", { p_id: String(id) });
+      if (!r.error && Array.isArray(r.data) && r.data.length) return { data: r.data[0], error: null };
+      if (!r.error && Array.isArray(r.data)) return { data: null, error: null };
+    } catch (e) {}
     const { data, error } = await supabase.from("courses").select("*").eq("id", id).single();
     return { data, error };
   },
@@ -147,6 +257,24 @@ window.fairwayCloud = {
     };
     const { data, error } = await supabase.from("courses").insert(payload).select().single();
     return { data, error };
+  },
+
+  // Set / change the signed-in user's password. No OLD password required — the
+  // active session token authorises it (works for magic-link users who never had
+  // a password). Hits the auth endpoint directly to avoid the getSession deadlock.
+  setPassword: async (password) => {
+    const token = await freshAccessToken();
+    if (!token) return { error: "Not logged in" };
+    try {
+      const res = await fetch(SUPABASE_URL + "/auth/v1/user", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY, Authorization: "Bearer " + token },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return { error: (data && (data.msg || data.error_description || data.message)) || ("Could not set password (" + res.status + ")") };
+      return { data, error: null };
+    } catch (e) { return { error: (e && e.message) || "Network error" }; }
   },
 
   /* =============================================================
@@ -178,6 +306,12 @@ window.fairwayCloud = {
   fetchMyRounds: async () => {
     if (!currentSession) return { data: [], error: null };
     return await supabase.from("rounds").select("*").order("date", { ascending: false });
+  },
+
+  // Friends' completed rounds (shared feed) — via controlled RPC (accepted friends only)
+  fetchFriendsRounds: async () => {
+    if (!currentSession) return { data: [], error: null };
+    return await supabase.rpc('get_friends_rounds', { p_limit: 80 });
   },
 
   pushRound: async (round) => {
@@ -259,8 +393,8 @@ window.fairwayCloud = {
     return await supabase
       .from("friend_invites")
       .select("*")
-      .eq("sender_id", currentSession.user.id)
-      .order("created_at", { ascending: false });
+      .eq("inviter_id", currentSession.user.id)
+      .order("invited_at", { ascending: false });
   },
 
   cancelInvite: async (inviteId) => {
@@ -341,12 +475,12 @@ function mapRoundLocalToCloud(round, userId) {
     alcohol: round.alcohol || null,
     warmup: round.warmup || null,
     transport: round.transport || null,
-    friends: (round.friends || []).filter(id => /^[0-9a-f-]{36}$/i.test(id)),
+    friends: ((round.friendCloudIds && round.friendCloudIds.length) ? round.friendCloudIds : (round.friends || [])).filter(id => /^[0-9a-f-]{36}$/i.test(id)),
     opponent_score: round.opponentScore || null,
     opponent_differential: round.opponentDifferential || null,
     opponent_stableford: round.opponentStableford || null,
     opponent_holes: round.opponentHoles || null,
-    rivalry_id: round.rivalryId || null,
+    rivalry_id: (round.rivalryId && /^[0-9a-f-]{36}$/i.test(round.rivalryId)) ? round.rivalryId : null,
     differential: round.differential || null,
     match_play: round.matchPlay || false,
     // Minigame / other-game fields
@@ -435,6 +569,19 @@ const FGL_SOCIAL = {
     return { data: profs || [], error: null };
   },
 
+  // Connect to an existing user by id -> create an accepted friendship (persists for both).
+  async addFriendship(friendUserId) {
+    if (!currentSession) return { error: 'Not signed in' };
+    const me = currentSession.user.id;
+    if (!friendUserId || friendUserId === me) return { error: 'Invalid friend' };
+    const a = me < friendUserId ? me : friendUserId;
+    const bb = me < friendUserId ? friendUserId : me;
+    const { data, error } = await supabase.from('friendships')
+      .upsert({ user_id_a: a, user_id_b: bb, created_by: me, status: 'accepted', accepted_at: new Date().toISOString() }, { onConflict: 'user_id_a,user_id_b' })
+      .select().maybeSingle();
+    return { data, error: error?.message };
+  },
+
   async sendFriendInvite({ email, name }) {
     if (!currentSession) return { error: 'Not signed in' };
     const cleanEmail = (email || '').trim().toLowerCase();
@@ -453,6 +600,19 @@ const FGL_SOCIAL = {
       });
     } catch (e) { console.warn('[FGL] friend OTP send failed:', e?.message); }
     return { data, error: null };
+  },
+
+  async findPlayer(q) {
+    if (!currentSession) return { data: [], error: 'Not signed in' };
+    const { data, error } = await supabase.rpc('find_player', { q: String(q || '') });
+    if (error) return { data: [], error: error.message };
+    return { data: data || [], error: null };
+  },
+
+  async getMyRivalryNumber() {
+    if (!currentSession) return null;
+    const { data } = await supabase.from('profiles').select('rivalry_number').eq('id', currentSession.user.id).maybeSingle();
+    return data?.rivalry_number ?? null;
   },
 
   async listPendingInvites() {
@@ -557,7 +717,7 @@ const FGL_SOCIAL = {
   },
 
   // ===================== LIVE ROUNDS =====================
-  async startLiveRound({ courseId, courseName, par, friends }) {
+  async startLiveRound({ courseId, courseName, par, friends, holes, players, score_type }) {
     if (!currentSession) return { error: 'Not signed in' };
     const { data, error } = await supabase
       .from('live_rounds')
@@ -567,11 +727,29 @@ const FGL_SOCIAL = {
         course_name: courseName,
         par,
         friends: friends || [],
+        holes: holes || null,
+        players: players || null,
+        score_type: score_type || null,
         status: 'playing',
+        current_hole: 1,
+        thru: 0,
+        rel_to_par: 0,
       })
       .select()
       .single();
     return { data, error: error?.message };
+  },
+
+  async updateLiveRound(id, fields) {
+    if (!currentSession || !id) return {};
+    const payload = { updated_at: new Date().toISOString() };
+    ['current_hole','thru','rel_to_par','total','holes','players','score_type'].forEach(k => { if (fields && fields[k] != null) payload[k] = fields[k]; });
+    return await supabase.from('live_rounds').update(payload).eq('id', id);
+  },
+
+  async abandonLiveRound(id) {
+    if (!currentSession || !id) return {};
+    return await supabase.from('live_rounds').update({ status: 'abandoned', completed_at: new Date().toISOString() }).eq('id', id);
   },
 
   async completeLiveRound(liveRoundId, { total, differential }) {
@@ -620,6 +798,25 @@ const FGL_SOCIAL = {
     return { data, error: error?.message };
   },
 
+  // Per-round result sent for opponent approval. kind='round' => ADD to standing.
+  async proposeRoundResult({ rivalryKey, opponentId, myDelta, oppDelta, note }) {
+    if (!currentSession) return { error: 'Not signed in' };
+    const { data, error } = await supabase
+      .from('rivalry_proposals')
+      .insert({
+        rivalry_key: rivalryKey,
+        proposer_id: currentSession.user.id,
+        proposer_score: myDelta,
+        opponent_id: opponentId,
+        opponent_score: oppDelta,
+        kind: 'round',
+        note: note || null,
+      })
+      .select()
+      .single();
+    return { data, error: error?.message };
+  },
+
   async resolveStandings(proposalId, resolution) {
     return await supabase
       .from('rivalry_proposals')
@@ -633,6 +830,17 @@ const FGL_SOCIAL = {
       .from('rivalry_proposals')
       .select('*')
       .eq('opponent_id', currentSession.user.id)
+      .eq('resolution', 'pending');
+    return { data: data || [] };
+  },
+
+  // Proposals I sent that are still waiting on the other person.
+  async listMySentProposals() {
+    if (!currentSession) return { data: [] };
+    const { data } = await supabase
+      .from('rivalry_proposals')
+      .select('*')
+      .eq('proposer_id', currentSession.user.id)
       .eq('resolution', 'pending');
     return { data: data || [] };
   },
@@ -749,3 +957,5 @@ const FGL_SOCIAL = {
 
 // Expose under fairwayCloud
 Object.assign(window.fairwayCloud, FGL_SOCIAL);
+// Expose internal helpers the app references
+window.fairwayCloud.ensureUuid = ensureUuid;

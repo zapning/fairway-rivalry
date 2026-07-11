@@ -1,5 +1,5 @@
 /* Fairway service worker - versioned cache with update flow + Web Push */
-const VERSION = 'fairway-v4-2026-06-16';
+const VERSION = 'fairway-v6-network-first';
 const PRECACHE = VERSION + '-precache';
 const RUNTIME = VERSION + '-runtime';
 
@@ -8,17 +8,21 @@ const PRECACHE_URLS = [
   './index.html',
   './Golf Dashboard.html',
   './supabase-bridge.js',
+  './styles.css',
+  './app.js',
   './manifest.json',
   './icon-192.svg',
   './icon-512.svg',
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png',
+  './avatar.png',
+  './og-image.png',
   './icon-maskable-512.png',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
 ];
 
-// INSTALL — precache app shell
+// INSTALL — precache app shell, activate immediately
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(PRECACHE)
@@ -57,21 +61,30 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
+  const sameOrigin = url.origin === self.location.origin;
+  const isCode = sameOrigin && /\.(html|css|js)$/.test(url.pathname);
+  const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+
+  // App shell + code (HTML/CSS/JS) => NETWORK-FIRST so every deploy applies immediately.
+  // Cache is only a fallback for offline use.
+  if (isNav || isCode) {
     event.respondWith(
       fetch(req).then(res => {
-        const clone = res.clone();
-        caches.open(RUNTIME).then(c => c.put(req, clone));
+        if (res && res.ok) {
+          const clone = res.clone();
+          caches.open(RUNTIME).then(c => c.put(req, clone));
+        }
         return res;
       }).catch(() =>
         caches.match(req)
-          .then(r => r || caches.match('./index.html'))
-          .then(r => r || caches.match('./Golf Dashboard.html'))
+          .then(r => r || (isNav ? caches.match('./index.html') : null))
+          .then(r => r || (isNav ? caches.match('./Golf Dashboard.html') : null))
       )
     );
     return;
   }
 
+  // Static media (images, fonts, CDN) => cache-first (immutable / rarely change)
   event.respondWith(
     caches.match(req).then(cached => {
       const fetchPromise = fetch(req).then(res => {
@@ -96,7 +109,7 @@ self.addEventListener('push', event => {
   } catch (e) {
     if (event.data) data.body = event.data.text();
   }
-  const title = data.title || 'Fairway Golf League';
+  const title = data.title || 'Fairway Rivalry';
   const opts = {
     body: data.body || '',
     icon: './icon-192.png',
@@ -115,7 +128,6 @@ self.addEventListener('notificationclick', event => {
   const target = (event.notification.data && event.notification.data.url) || '/';
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-      // Try focusing an existing window first
       for (const c of clients) {
         if ('focus' in c) {
           c.postMessage({ type: 'FGL_NOTIF_CLICK', data: event.notification.data });
@@ -130,11 +142,9 @@ self.addEventListener('notificationclick', event => {
 });
 
 self.addEventListener('pushsubscriptionchange', event => {
-  // Resubscribe automatically when the push subscription expires
   event.waitUntil(
     self.registration.pushManager.getSubscription().then(sub => {
       if (sub) return sub;
-      // No way to resubscribe without the VAPID key here — page will handle on next open
     })
   );
 });
