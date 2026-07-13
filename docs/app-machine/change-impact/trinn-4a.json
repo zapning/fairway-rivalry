@@ -1,0 +1,88 @@
+{
+  "task": "BUILD-PLAN v3 trinn 4A - global structural contracts (app-shell, header, navigation)",
+  "authoritative_head": "a3532b00af425a59a6d8fca72aada2a50d20af26",
+  "work_mode": "IMPLEMENTATION",
+  "classification": "PRODUCT_WIDE",
+  "classification_rationale": "Touches app-shell, header and main navigation, which are shared by every page. Per cross-cutting rule B such changes default to product-wide, even though the only app-code change is a single test hook.",
+  "risk_level": "LOW",
+  "risk_rationale": "The only app-code change is one design-neutral attribute (data-testid) on the single existing <header>. No CSS rule matches [data-testid], no JavaScript reads it, and the DOM tree is otherwise byte-identical. Everything else added is test code and documentation, which cannot reach production. Worst realistic case is a failing test, never a broken app.",
+  "app_code_changed": true,
+  "markup_changed": true,
+  "ui_changed": false,
+  "css_changed": false,
+  "images_changed": false,
+  "component_order_changed": false,
+  "functionality_changed": false,
+  "changed_files": [
+    "Golf Dashboard.html",
+    "tests/ui/fixtures/pages.ts",
+    "tests/ui/contracts/global-shell.contract.spec.ts",
+    "design/contracts/CONTRACT-REGISTER.md",
+    "docs/app-machine/change-impact/trinn-4a.json"
+  ],
+  "markup_change_detail": {
+    "file": "Golf Dashboard.html",
+    "line": 147,
+    "before": "<header>",
+    "after": "<header data-testid=\"app-header\">",
+    "design_neutral": true,
+    "function_neutral": true,
+    "css_selectors_matching": 0,
+    "js_readers": 0
+  },
+  "affected_pages": [
+    "Clubhouse",
+    "Tee Off",
+    "Rivalry",
+    "Feed",
+    "FGL",
+    "Profile",
+    "Settings",
+    "Insights",
+    "Trophies",
+    "Rounds",
+    "Courses",
+    "Approvals",
+    "Friends",
+    "Stats",
+    "Scorecard",
+    "Landing"
+  ],
+  "affected_shared_components": [
+    "app-shell (.app)",
+    "header ([data-testid=app-header])",
+    "main navigation (nav#tabs in #tabs-wrap)"
+  ],
+  "affected_data_api_contracts": [],
+  "required_test_sets": [
+    "tests/ui/smoke",
+    "tests/ui/contracts"
+  ],
+  "expected_test_count": {
+    "common_global_tests": 7,
+    "tab_switch_tests": 5,
+    "new_tests": 12,
+    "projects": 4,
+    "new_total": 48,
+    "existing_smoke": 4,
+    "expected_total": 52
+  },
+  "evidence_requirements": {
+    "screenshot": false,
+    "real_device": false,
+    "reviewer": "manual read-only review",
+    "rationale": "No visual or functional change. Reviewer required because the contract is product-wide."
+  },
+  "not_in_scope": [
+    "Clubhouse deep contract (4C)",
+    "negative mutation tests (4D)",
+    "layout, accessibility, visual and functional gates (steps 5-7)"
+  ],
+  "approved_deviation": {
+    "requirement_as_stated": "nav#tabs must be a direct child of .app",
+    "actual_dom": ".app > div#tabs-wrap > nav#tabs",
+    "resolution": "Markup was NOT changed. The contract follows the real global-chrome structure: exactly one #tabs-wrap, #tabs-wrap is a direct child of .app, exactly one nav#tabs, nav#tabs is mounted inside #tabs-wrap, and nav#tabs is never inside section[id^=\"tab-\"]. This preserves the intent (navigation is global chrome, never page content) without a structural markup change that would have CSS consequences.",
+    "status": "APPROVED",
+    "approved_by": "Mathias"
+  }
+}
