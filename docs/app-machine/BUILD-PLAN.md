@@ -166,7 +166,7 @@ Leveres i fire uavhengige deler:
 - **(b) Minimumskontrakt for hver hovedside/rute/aktive tilstand:** visningen laster, riktig aktiv
   fane, ingen duplikate slots, dynamiske verdier er DOM-innhold.
   - **4B-1 — primary tabs (Clubhouse, Tee Off, Rivalry, Feed, FGL): FINAL PASS**
-  - **4B-2 — secondary pages: NOT STARTED**
+  - **4B-2 — secondary pages + sekundærflater: FINAL PASS**
   - **4B-3 — flow-step (Scorecard) og disabled-entry (Landing): NOT STARTED**
 - **(c) Clubhouse som første dype pilot:** full komponentrekkefølge og kontraktdekning. — **NOT STARTED**
 - **(d) Negative mutasjonstester:** feil headerasset, duplikat resume-slot eller feil kortrekkefølge
@@ -187,6 +187,25 @@ Isolert `20 passed`; full lokal `72 passed`; lokal `CI=1` `72 passed`; ren-check
 
 Alle fire prosjekter (chromium-390, chromium-412, webkit-390, webkit-412). Ingen appkode endret i
 4B-1. Produktfunn fra arbeidet er registrert i `docs/app-machine/change-impact/trinn-4b-1.json`.
+
+**4B-2 — minimumskontrakt for sekundære inngangspunkter (secondary pages + sekundærflater).**
+24 nye tester (6 × 4 prosjekter), samlet suite **96**. Isolert `24 passed`; full lokal `96 passed`;
+lokal `CI=1` `96 passed`; GitHub Actions «UI foundation (Chromium + WebKit)»: **Success**. Alle fire
+prosjekter (chromium-390 = 390×844, chromium-412 = 412×915, webkit-390, webkit-412). Lokal og remote
+HEAD identiske. Commit `bb62c8a88b619c45f6660dd3d9e07f6f71c77297`.
+
+Dekket via reell, synlig aktivering (rolle + tilgjengelig navn): sekundærsidene **Rounds** (Enter),
+**Rivals/Friends** (Space), **Trophies** og **Approvals** via native V3-ikonknapper, samt
+sekundærflatene **Insights-modal** og **Handicap-modal** (`aria-haspopup="dialog"` + `aria-controls="modal-bg"`,
+Clubhouse forblir aktiv).
+
+BLOCKED / ikke kontraktfestet (bevisst ikke gjort kunstig grønt): **Profile** og **Settings** flyttes
+til **trinn 5** fordi de krever en **autentisert fixture** (cloud-gated — utlogget åpner
+autentiseringsflyten, ikke profilmenyen). **Stats** (`#tab-stats`), **Courses** (`#tab-courses`) og
+**Insights-siden** (`#tab-insights`) er **BLOCKED/orphaned** (ingen levende inngang). Ingen orphaned-guard
+er lagt til for Stats, slik at en senere reparasjon ikke blir en testfeil. Godkjente app-endringer:
+seks native `button.chd-box` + scopet CSS-reset med `:focus-visible` på `var(--gold)`. Produktfunn
+(P, Q, L, M, O, R, S) er registrert i `docs/app-machine/change-impact/trinn-4b-2.json`.
 
 ## Trinn 5 — Funksjonelle brukerreiser, tilstander og data-/API-kontrakter
 
