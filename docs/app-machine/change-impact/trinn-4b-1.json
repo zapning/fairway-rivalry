@@ -1,0 +1,187 @@
+{
+  "task": "BUILD-PLAN v3 trinn 4B-1 - minimum structural contract for primary tabs",
+  "authoritative_head": "89330114a0276c0bfcd83d6e558c3cf3232aa6fb",
+  "work_mode": "IMPLEMENTATION",
+  "classification": "PRODUCT_WIDE",
+  "classification_rationale": "Establishes the minimum structural contract shared by every primary tab. Per cross-cutting rule B this defaults to product-wide even though no app code is touched.",
+  "risk_level": "LOW",
+  "risk_rationale": "Test code and documentation only. No app code, markup, CSS, images, component order or functionality is changed, and no new hooks are added - every selector already exists in production code. Tests run against the existing seedEmptyState fixture with service workers blocked, so they never depend on production data or the network. Worst realistic case is a failing test, never a broken app.",
+  "app_code_changed": false,
+  "markup_changed": false,
+  "ui_changed": false,
+  "css_changed": false,
+  "images_changed": false,
+  "component_order_changed": false,
+  "functionality_changed": false,
+  "new_hooks": [],
+  "changed_files": [
+    "tests/ui/contracts/page-minimum.contract.spec.ts",
+    "tests/ui/fixtures/page-contracts.ts",
+    "docs/app-machine/change-impact/trinn-4b-1.json",
+    "design/contracts/CONTRACT-REGISTER.md"
+  ],
+  "changed_files_note": "CONTRACT-REGISTER.md is listed LAST and is only updated to 'partial' after the local tests are actually green. It is not written in this step.",
+  "affected_pages": [
+    "Clubhouse",
+    "Tee Off",
+    "Rivalry",
+    "Feed",
+    "FGL"
+  ],
+  "affected_shared_components": [
+    "app-shell (.app)",
+    "main navigation (nav#tabs)"
+  ],
+  "affected_data_api_contracts": [],
+  "activation_policy": "Primary tabs are activated via a real click on the VISIBLE nav button (nav#tabs button[data-tab=...]), not via window.activateTab().",
+  "determinism": "seedEmptyState fixture + blocked service workers. No production data, no network dependency.",
+  "contract_policy": "Contracts assert the ACTUAL LIVE VIEW only. Hidden legacy markup is deliberately excluded - it is neither required visible nor required present - so that later cleanup is not blocked by the tests.",
+  "required_test_sets": [
+    "tests/ui/smoke",
+    "tests/ui/contracts"
+  ],
+  "expected_test_count": {
+    "new_tests": 5,
+    "projects": 4,
+    "new_total": 20,
+    "existing": 52,
+    "expected_total": 72
+  },
+  "evidence_requirements": {
+    "screenshot": false,
+    "real_device": false,
+    "reviewer": "manual read-only review",
+    "rationale": "No visual or functional change; test code only."
+  },
+  "authoritative_render_path": {
+    "clubhouse": "nav click -> activateTab('dashboard') -> renderDashboard() [app.js:3689, ONLY definition] -> renderIdentityHero() + showWhenHasData gating (six panels hidden without rounds) + #dash-clubhouse-tail.innerHTML = renderClubhouseInsightsPreview() + renderClubhouseTrophiesPreview() -> renderClubhouseDashboard().",
+    "tee_off": "nav click -> activateTab('round') -> renderRoundForm() -> showRoundKindPicker(): shows #r-kind-panel and sets display:none on #r-form-golf / #r-form-golfmini / #r-form-minigame / #r-form-other. Round-type cards are static: #r-kind-panel > .teeoff-cards > .teeoff-card[data-kind] (5x), no display:none rule in CSS. Wizard steps #rwz-step-1/2/3 belong to a LATER phase -> moved to 4B-3."
+  },
+  "product_findings": [
+    {
+      "id": "A",
+      "page": "Rivalry",
+      "finding": "renderRivalryHero() reads $(\"#rivalry-hero\"), which does not exist in the DOM and is never created. The function always returns silently, so the .hero-empty state (\"NO RIVALRY ACTIVE\") is never rendered. Dead code.",
+      "decision": "Contract pinned to the actual behaviour of renderRivalry(). No app code changed in 4B-1.",
+      "status": "OPEN"
+    },
+    {
+      "id": "B",
+      "page": "FGL",
+      "finding": "renderFGL() writes a single <img class=\"fgl-coming-img\"> and then performs an UNCONDITIONAL return. All league code below it is dead.",
+      "decision": "FGL gets a placeholder contract, not a live-page contract.",
+      "status": "OPEN"
+    },
+    {
+      "id": "D",
+      "page": "Feed",
+      "finding": "renderFeed() has no explicit loading or error state. Errors are swallowed in try/catch into empty arrays and degrade silently to .feed-empty, so the user cannot distinguish 'no activity' from 'something failed'.",
+      "decision": "Belongs to step 5/8. Does not block 4B-1.",
+      "status": "OPEN"
+    },
+    {
+      "id": "E",
+      "page": "Clubhouse",
+      "finding": "Hidden legacy markup: .clubhouse-crest, .clubhouse-sign and .clubhouse-divider are still rendered into the DOM but forced hidden by styles.css:6379 (display:none !important). They were superseded by the V3 dashboard (.ch-wall-*).",
+      "decision": "NOT part of the contract. Not required visible and not required present, so cleanup is not blocked. Cleanup must be decided separately; no app code changed in 4B-1.",
+      "status": "OPEN"
+    },
+    {
+      "id": "F",
+      "page": "Rivalry",
+      "finding": "Hidden legacy markup: .rivalry-hero, .rivalry-hero-title and .rivalry-hero-sub are still in the DOM but forced hidden by styles.css:5613 (display:none !important). .rivalry-hero-bg was turned into a fixed full-bleed background (styles.css:5614).",
+      "decision": "NOT part of the contract. Cleanup must be decided separately; no app code changed in 4B-1.",
+      "status": "OPEN"
+    },
+    {
+      "id": "G",
+      "page": "Feed",
+      "finding": "Hidden legacy markup: #feed-filters is emptied and hidden on every render by renderFeed() (app.js:17060-17061: fbar.innerHTML=''; fbar.style.display='none').",
+      "decision": "NOT part of the contract. Cleanup must be decided separately; no app code changed in 4B-1.",
+      "status": "OPEN"
+    },
+    {
+      "id": "H",
+      "page": "Clubhouse",
+      "finding": "#identity-hero is EMPTY with an empty fixture. No CSS rule and no JS sets display on it; renderIdentityHero() returns early (`const p = activeProfile(); if (!p) return;`) when there is no active profile, so innerHTML is never set and the element has a zero bounding box.",
+      "decision": "OUTSIDE the minimum contract. Not required visible and not required present, so cleanup is not blocked. Cleanup decided separately; no app code changed in 4B-1.",
+      "status": "OPEN"
+    },
+    {
+      "id": "I",
+      "page": "Clubhouse",
+      "finding": "#dash-quick-strip is hidden legacy markup: styles.css:6256 forces `display:none !important`. It was superseded by the V3 dashboard icon row inside #dash-clubhouse-tail.",
+      "decision": "OUTSIDE the minimum contract. Cleanup decided separately; no app code changed in 4B-1.",
+      "status": "OPEN"
+    },
+    {
+      "id": "J",
+      "page": "Clubhouse",
+      "finding": "The Clubhouse box titles (RECORD THIS SEASON, YOUR HC, ROUNDS PLAYED, LOWEST HCP PLAYED, NEMESIS, BREAKSCORE, ...) are baked into the static WebP images under clubhouse-cards/v3/. They are NOT DOM text, so they are unavailable to screen readers, cannot be translated, and cannot be asserted structurally. The VALUES are real DOM text (.chd-tx.chd-gold / .chd-tx.chd-serif / .bs-num) overlaid on those images.",
+      "decision": "OUTSIDE 4B-1. Handled separately (accessibility/i18n).",
+      "status": "OPEN"
+    },
+    {
+      "id": "K",
+      "page": "Clubhouse",
+      "finding": "renderClubhouseTopCard() (app.js:11351) and renderClubhouseQuickNav() are DEAD CODE - never called. .ch-rc-value / .ch-top-record belong only to that unused render path. .ch-wall-num belongs to renderBetsLedger() (app.js:7242), a different feature, not the Clubhouse dashboard.",
+      "decision": "OUTSIDE 4B-1. Cleanup decided separately; no app code changed in 4B-1.",
+      "status": "OPEN"
+    }
+  ],
+  "legacy_cleanup_note": "Findings E, F and G are hidden legacy markup that still ships to production. The contracts deliberately do NOT lock them in place. Whether to remove the markup is a separate product decision and is out of scope for 4B-1.",
+  "documented_page_states": {
+    "Rivalry": {
+      "preview_empty": "#rivalry-list contains .rv-dash + .rv-card2.rv-placeholder, no .rv-bar",
+      "populated": ".rv-dash + .rv-bar + .rv-card2 without .rv-placeholder",
+      "tested_in_4b1": "preview_empty"
+    },
+    "Feed": {
+      "empty": ".feed-empty with .feed-empty-icon/.feed-empty-title/.feed-empty-sub/.feed-empty-actions",
+      "content": ".feed-list",
+      "loading": "does not exist",
+      "error": "does not exist (degrades to .feed-empty)",
+      "tested_in_4b1": "empty (via expect.poll)"
+    },
+    "Tee Off": {
+      "entry": "#r-kind-panel with .teeoff-card[data-kind] visible; r-form-* panels hidden",
+      "wizard": "#rwz-step-1/2/3 - later phase, moved to 4B-3",
+      "tested_in_4b1": "entry"
+    },
+    "Clubhouse": {
+      "live_view": "The entire live Clubhouse renders inside #dash-clubhouse-tail (V3 dashboard): Record this season (.ch-rc-value), active-round line, icon row, 8 stat boxes (.ch-wall-num), Breakscore (.bs-num).",
+      "empty_fixture": "Values render as placeholders (0-0, 0, em-dash). The six data-gated panels exist in the DOM and are hidden.",
+      "outside_contract": [
+        "#identity-hero (empty shell, finding H)",
+        "#dash-quick-strip (hidden legacy, finding I)",
+        "clubhouse-crest/sign/divider (hidden legacy, finding E)"
+      ],
+      "tested_in_4b1": "empty_fixture",
+      "live_value_selectors": {
+        "record_this_season": "#dash-clubhouse-tail .chd-tx.chd-gold",
+        "stat_box_values": "#dash-clubhouse-tail .chd-tx.chd-serif",
+        "breakscore_counts": "#dash-clubhouse-tail .bs-num",
+        "created_by": "renderClubhouseDashboard() (app.js:11302-11350)",
+        "note": "Values are real DOM text overlaid on static webp images. .chd-tx.chd-lab is excluded from the non-empty requirement because it can legitimately be empty (nineSub/jewelSub -> '')."
+      },
+      "out_of_scope_counts": "The exact number of V3 boxes and breakscore rows is NOT locked in 4B-1 (requireAtLeast: 1). Exact counts belong to 4C (Clubhouse deep pilot)."
+    }
+  },
+  "leak_tokens": [
+    "undefined",
+    "NaN",
+    "{{",
+    "[object Object]"
+  ],
+  "leak_tokens_note": "A generic substring search for 'null' is deliberately NOT used - it produces false positives. Empty values are caught by the page-specific assertions instead.",
+  "not_in_scope": [
+    "4B-2 secondary pages",
+    "4B-3 flow-step (incl. #rwz-step-1/2/3) and disabled-entry",
+    "4C Clubhouse deep pilot",
+    "4D negative mutation tests",
+    "legacy markup cleanup (findings E, F, G)",
+    "layout, accessibility, visual and functional gates (steps 5-7)",
+    "legacy markup cleanup (findings E, F, G, H, I)",
+    "exact V3 box / breakscore row counts (belongs to 4C)"
+  ]
+}
