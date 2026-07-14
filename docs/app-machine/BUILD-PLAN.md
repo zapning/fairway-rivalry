@@ -157,20 +157,36 @@ Ferdig når: samme commit gir samme resultat lokalt og i CI, og en ren checkout 
 
 ## Trinn 4 — Produktomfattende strukturelle kontrakter
 
-**Status: NOT STARTED**
+**Status: IN PROGRESS**
 
 Leveres i fire uavhengige deler:
 
 - **(a) Globale kontrakter** for app-shell, header og navigasjon: én header, riktig nav-rekkefølge,
-  riktig aktiv fane, riktig aktiv-markering.
+  riktig aktiv fane, riktig aktiv-markering. — **4A: FINAL PASS**
 - **(b) Minimumskontrakt for hver hovedside/rute/aktive tilstand:** visningen laster, riktig aktiv
   fane, ingen duplikate slots, dynamiske verdier er DOM-innhold.
-- **(c) Clubhouse som første dype pilot:** full komponentrekkefølge og kontraktdekning.
+  - **4B-1 — primary tabs (Clubhouse, Tee Off, Rivalry, Feed, FGL): FINAL PASS**
+  - **4B-2 — secondary pages: NOT STARTED**
+  - **4B-3 — flow-step (Scorecard) og disabled-entry (Landing): NOT STARTED**
+- **(c) Clubhouse som første dype pilot:** full komponentrekkefølge og kontraktdekning. — **NOT STARTED**
 - **(d) Negative mutasjonstester:** feil headerasset, duplikat resume-slot eller feil kortrekkefølge
-  **skal** gi rød test.
+  **skal** gi rød test. — **NOT STARTED**
 
 Ferdig når: (a) og (b) er grønne for alle hovedsider, (c) er dyp for Clubhouse, og hver mutasjon i
 (d) fanges. **Full dybdedekning av alle sider kreves ikke før apputvikling kan fortsette.**
+
+### Testbevis
+
+**4A — globale strukturelle kontrakter (shell, header, navigasjon).** 12 tester × 4 prosjekter = 48,
+pluss 4 foundation-smoke = 52. Isolert `48 passed`; full suite `52 passed`; lokal `CI=1` `52 passed`;
+ren-checkout GitHub Actions: **Success**. Commit `89330114a0276c0bfcd83d6e558c3cf3232aa6fb`.
+
+**4B-1 — minimumskontrakt for primary tabs.** 5 tester × 4 prosjekter = 20, samlet suite 72.
+Isolert `20 passed`; full lokal `72 passed`; lokal `CI=1` `72 passed`; ren-checkout GitHub Actions:
+**Success**. Commit `1ed43d018594abea6ff49838f34052068f2fd864`.
+
+Alle fire prosjekter (chromium-390, chromium-412, webkit-390, webkit-412). Ingen appkode endret i
+4B-1. Produktfunn fra arbeidet er registrert i `docs/app-machine/change-impact/trinn-4b-1.json`.
 
 ## Trinn 5 — Funksjonelle brukerreiser, tilstander og data-/API-kontrakter
 
