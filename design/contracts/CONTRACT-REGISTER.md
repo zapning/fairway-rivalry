@@ -23,15 +23,15 @@ Alle fakta under er **verifisert mot faktisk DOM** i `Golf Dashboard.html` og `a
 | Rivalry | `rivalry` | primary-tab | synlig hovedfane | `#tab-rivalry` | always-mounted | default-hidden | live | missing | partial (4A + 4B-1) |
 | Feed | `feed` | primary-tab | synlig hovedfane | `#tab-feed` | always-mounted | default-hidden | live | missing | partial (4A + 4B-1) |
 | FGL | `fgl` | primary-tab | synlig hovedfane | `#tab-fgl` | always-mounted | default-hidden | placeholder | missing | partial (4A + 4B-1, placeholder) |
-| Profile | `profile` | secondary-page | skjult intern knapp + meny | `#tab-profile` | always-mounted | default-hidden | live | missing | partial |
-| Settings | `settings` | secondary-page | skjult intern knapp + meny | `#tab-settings` | always-mounted | default-hidden | live | missing | partial |
-| Insights | `insights` | secondary-page | skjult intern knapp + kort/CTA | `#tab-insights` | always-mounted | default-hidden | live | missing | partial |
-| Trophies | `trophies` | secondary-page | skjult intern knapp + kort/CTA | `#tab-trophies` | always-mounted | default-hidden | live | missing | partial |
-| Rounds | `rounds` | secondary-page | skjult intern knapp + kort/CTA | `#tab-rounds` | always-mounted | default-hidden | live | missing | partial |
-| Courses | `courses` | secondary-page | skjult intern knapp + kort/CTA | `#tab-courses` | always-mounted | default-hidden | live | missing | partial |
-| Approvals | `approvals` | secondary-page | kort/CTA (ingen nav-knapp) | `#tab-approvals` | always-mounted | default-hidden | live | missing | partial |
-| Friends | `friends` | secondary-page | skjult intern knapp + kort/CTA | `#tab-friends` | always-mounted | default-hidden | live | missing | partial |
-| Stats | `stats` | secondary-page | skjult intern knapp + kort/CTA | `#tab-stats` | always-mounted | default-hidden | live | missing | partial |
+| Profile | `profile` | secondary-page | cloud-gated meny (utlogget → auth) | `#tab-profile` | always-mounted | default-hidden | live | missing | BLOCKED 4B-2 (auth → trinn 5) |
+| Settings | `settings` | secondary-page | cloud-gated meny (utlogget → auth) | `#tab-settings` | always-mounted | default-hidden | live | missing | BLOCKED 4B-2 (auth → trinn 5) |
+| Insights | `insights` | secondary-page | ingen levende inngang (død kode) | `#tab-insights` | always-mounted | default-hidden | live | missing | BLOCKED/orphaned; Insights-**modal** dekket 4B-2 |
+| Trophies | `trophies` | secondary-page | synlig V3-ikonknapp (Clubhouse) | `#tab-trophies` | always-mounted | default-hidden | live | missing | **4B-2: dekket (ikon)** |
+| Rounds | `rounds` | secondary-page | synlig V3-ikonknapp (Clubhouse) | `#tab-rounds` | always-mounted | default-hidden | live | missing | **4B-2: dekket (ikon, Enter)** |
+| Courses | `courses` | secondary-page | ingen levende inngang | `#tab-courses` | always-mounted | default-hidden | live | missing | BLOCKED/orphaned |
+| Approvals | `approvals` | secondary-page | synlig V3-ikonknapp (Clubhouse) | `#tab-approvals` | always-mounted | default-hidden | live | missing | **4B-2: dekket (ikon)** |
+| Friends | `friends` | secondary-page | synlig V3-ikonknapp «Rivals» (Clubhouse) | `#tab-friends` | always-mounted | default-hidden | live | missing | **4B-2: dekket (ikon, Space)** |
+| Stats | `stats` | secondary-page | ingen levende inngang (død kode) | `#tab-stats` | always-mounted | default-hidden | live | missing | BLOCKED/orphaned |
 | Scorecard | `scorecard` | flow-step (under Tee Off) | funksjonsflyt (steg 3) | `#rwz-step-3` | always-mounted | conditionally-visible | live | missing | partial |
 | Landing | `landing` | disabled-entry | ikke montert | — | not-mounted | not-applicable | disabled | missing | partial |
 
@@ -69,6 +69,35 @@ Lokalt verifisert: isolert `20 passed`, full suite `72 passed`, full suite med `
 (chromium-390, chromium-412, webkit-390, webkit-412). Ingen appkode endret.
 
 Ingen side har `covered`. Dyp kontraktdekning krever trinn 4C (Clubhouse-pilot) og påfølgende sidekontrakter.
+
+### Etter trinn 4B-2 — minimumskontrakt for sekundære inngangspunkter
+
+Dekker **reelle, synlige og deterministiske** brukerreiser fra Clubhouse i tom/utlogget tilstand, valgt
+via rolle + tilgjengelig navn (`getByRole`) — aldri `onclick`-selektor eller `window.activateTab`:
+
+- **Sekundærsider via V3-ikonknapp** (native `<button type="button">` med korrekt `aria-controls`):
+  Rounds (Enter), Rivals/Friends (Space), Trophies (klikk), Approvals (klikk).
+- **Sekundærflater (delt modal, ikke side):** Insights- og Handicap-modal via `aria-haspopup="dialog"`
+  + `aria-controls="modal-bg"`; verifiserer at Clubhouse forblir aktiv (`body[data-tab]='dashboard'`)
+  og at ingen foreldreløs side åpnes. `#modal-bg`/`#modal`-markup er uendret.
+
+Determinisme: `seedEmptyState`, blokkerte service workers. Ingen produksjonsdata, ingen Supabase-skriving.
+
+**BLOCKED i 4B-2 (bevisst ikke gjort kunstig grønne):** Profile og Settings er cloud-gated — utlogget
+åpner profilknappen autentiseringsflyten, ikke menyen, og de native Edit profile/Settings-knappene
+finnes bare for innlogget bruker; flyttes til **trinn 5** når autentisert fixture etableres. Stats
+(`#tab-stats`) og Courses (`#tab-courses`) er foreldreløse (ingen levende inngang), og Insights-**siden**
+`#tab-insights` er foreldreløs (den faktiske Insights-**modalen** er dekket). Ingen orphaned-guard er
+lagt til for Stats, slik at en senere reparasjon ikke blir en testfeil.
+
+Autoritativ kilde for detaljerte funn (P, Q, L, M, O, R, S) og statusbegrunnelser — **ikke duplisert her**:
+`docs/app-machine/change-impact/trinn-4b-2.json`.
+
+**Testbevis:** `tests/ui/contracts/secondary-pages.contract.spec.ts` — 6 tester × 4 prosjekter = 24.
+Lokalt verifisert: isolert `24 passed`, full suite `96 passed`, full suite med `CI=1` `96 passed`
+(chromium-390, chromium-412, webkit-390, webkit-412), ingen nye dist-endringer. Ingen appkode endret
+utover de godkjente 4B-2 button-/CSS-endringene (seks native `button.chd-box` + scopet reset med
+`:focus-visible` på `var(--gold)`).
 
 ## Produktfunn
 

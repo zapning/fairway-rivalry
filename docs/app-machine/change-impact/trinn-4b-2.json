@@ -1,0 +1,138 @@
+{
+  "task": "BUILD-PLAN v3 trinn 4B-2 - minimum structural contracts for secondary pages + surfaces",
+  "authoritative_head": "ed18279e0385274c1700175992fda5b307d86af7",
+  "work_mode": "IMPLEMENTATION",
+  "classification": "PRODUCT_WIDE",
+  "classification_rationale": "Touches the shared Clubhouse navigation (app-shell chrome) and establishes the minimum contract for secondary pages. Per cross-cutting rule B this defaults to product-wide.",
+  "risk_level": "LOW",
+  "risk_rationale": "App-code change is limited to: (1) converting six Clubhouse V3 nav icons from <div> to native <button type=button> with aria-label/aria-controls/aria-haspopup (existing onclick handlers preserved), and (2) a narrowly scoped CSS reset (button.chd-box only) restoring visual parity plus a :focus-visible outline. No behaviour, layout math, background images, positions, component order or data flow changed. Tests + docs are otherwise inert. Worst realistic case is a failing test.",
+  "app_code_changed": true,
+  "markup_changed": true,
+  "css_changed": true,
+  "ui_changed": false,
+  "functionality_changed": false,
+  "images_changed": false,
+  "component_order_changed": false,
+  "changed_files": [
+    "app.js",
+    "styles.css",
+    "tests/ui/fixtures/state.ts",
+    "tests/ui/fixtures/secondary-pages.ts",
+    "tests/ui/contracts/secondary-pages.contract.spec.ts",
+    "docs/app-machine/change-impact/trinn-4b-2.json",
+    "design/contracts/CONTRACT-REGISTER.md"
+  ],
+  "changed_files_note": "CONTRACT-REGISTER.md is listed LAST and is only updated after the local tests are actually green. It is not written in this step.",
+  "app_code_change_detail": {
+    "app_js": "renderClubhouseDashboard(): 6 icon boxes <div class=chd-box ch-tap> -> <button type=button class=chd-box ch-tap>. Side icons (Rounds/Rivals/Trophies/Approvals) get aria-label + aria-controls=tab-<root>. Modal icons (Insights/Handicap) get aria-label + aria-haspopup=dialog + aria-controls=modal-bg. onclick handlers unchanged. #modal-bg and #modal markup NOT touched.",
+    "styles_css": "Scoped reset for button.chd-box only (appearance/margin/padding/border/background-color:transparent/color/font/line-height/text-align:inherit) + button.chd-box:focus-visible { outline:2px solid var(--gold); outline-offset:2px; border-radius:6px }. No global button reset. No hard-coded gold fallback."
+  },
+  "activation_policy": "Real, visible user interaction only, selected by role + accessible name (getByRole). Enter for Rounds, Space for Rivals, click for the rest. Never inline onclick, never window.activateTab, never a V3-specific class name.",
+  "determinism": "seedEmptyState for all (clean, logged-out storage). No production data, no network, no Supabase. seedRoundState was removed with the Stats test (Stats entry is dead code; see finding S).",
+  "scope_decision": "4B-2 grants a green contract ONLY to user journeys that are actually reachable and deterministic now (empty, logged-out state). Profile/Settings (finding R) and Stats (finding S) are not, and are dropped from 4B-2 rather than contracted with an assumption that does not hold. No orphaned-guard is added for Stats: asserting Stats stays unreachable would lock today's broken behavior and turn a later fix into a test failure.",
+  "affected_pages": [
+    "Rounds",
+    "Rivals/Friends",
+    "Trophies",
+    "Approvals"
+  ],
+  "affected_surfaces": [
+    "Insights modal",
+    "Handicap modal"
+  ],
+  "affected_shared_components": [
+    "app-shell (.app)",
+    "Clubhouse V3 nav icon row",
+    "profile chip menu",
+    "shared modal (#modal-bg/#modal)"
+  ],
+  "affected_data_api_contracts": [],
+  "required_test_sets": [
+    "tests/ui/smoke",
+    "tests/ui/contracts"
+  ],
+  "expected_test_count": {
+    "new_tests": 6,
+    "projects": 4,
+    "new_total": 24,
+    "existing": 72,
+    "expected_total": 96,
+    "note": "6 contracts = Rounds, Rivals, Trophies, Approvals (icon pages) + Insights, Handicap (modal surfaces). Profile/Settings/Stats dropped (findings R, S)."
+  },
+  "evidence_requirements": {
+    "screenshot": "REQUIRED (manual/local): Chromium 390/412 + WebKit 390/412 visual parity of the icon row vs the pre-change <div> version - same position/size/backgrounds, no UA border/padding/background, no layout shift, focus-visible not clipped. NOT yet run; do not claim pixel parity before it is.",
+    "real_device": false,
+    "reviewer": "manual read-only review"
+  },
+  "product_findings": [
+    {
+      "id": "P",
+      "page": "Clubhouse V3 nav icons",
+      "solved_in_4b2": "role, accessible name, keyboard focus and native Enter/Space activation for all six icons (Rounds, Rivals, Trophies, Insights, Approvals, Handicap) via native <button aria-label>.",
+      "not_solved_in_4b2": "See finding Q - accessibility inside the shared modal architecture is out of scope.",
+      "status": "RESOLVED (icon row) / PARTIAL (modal internals -> Q)"
+    },
+    {
+      "id": "Q",
+      "page": "Shared modal (#modal-bg / #modal)",
+      "finding": "The shared modal container lacks a correct dialog role and an accessible name. Focus is not documented to move into the modal on open; focus return to the trigger on close is not documented; a focus trap is missing or not documented.",
+      "decision": "NOT solved in 4B-2. Deliberately no half modal refactor. The buttons advertise the modal via aria-haspopup=dialog and aria-controls=modal-bg, but full modal a11y (role/dialog, aria-modal with real focus management, focus trap, accessible name) is a separate step.",
+      "status": "OPEN"
+    },
+    {
+      "id": "L",
+      "page": "Insights",
+      "finding": "The visible Insights icon opens openAdvancedInsights() (a modal), not #tab-insights. #tab-insights is only reachable via renderClubhouseInsightsPreview(), which returns '' immediately (dead code).",
+      "decision": "The actual user surface (the modal) is contracted as a secondary surface. #tab-insights stays BLOCKED/orphaned; no false page contract.",
+      "status": "OPEN"
+    },
+    {
+      "id": "M",
+      "page": "Courses",
+      "finding": "No activateTab('courses') call anywhere; no visible entry. The page renders but no user can reach it. The More menu that could expose it is permanently display:none.",
+      "decision": "BLOCKED/orphaned. No contract, no new user path in 4B-2. Keep/remove decided separately.",
+      "status": "OPEN"
+    },
+    {
+      "id": "O",
+      "page": "More menu",
+      "finding": "#tabs-more has inline style=display:none which overrides the CSS media-query rule, so the eight hidden nav buttons have no visible path.",
+      "decision": "Registered, NOT repaired in 4B-2.",
+      "status": "OPEN"
+    },
+    {
+      "id": "R",
+      "page": "Profile and Settings",
+      "finding": "Both pages are cloud-gated. openProfileMenu (app.js:2581-2582) only builds the player-card menu when window.fairwayCloud.isLoggedIn() is true; logged-out it returns openAuthModal(), so the profile chip opens the authentication flow, not the profile menu. The native <button>Edit profile</button> / <button>Settings</button> (app.js:2619-2620) that call activateTab('profile'|'settings') only render for a logged-in user. The buttons are proper native buttons with correct accessible names and handlers - this is NOT an accessibility defect.",
+      "decision": "BLOCKED in 4B-2: neither page is reachable in the empty, logged-out state the suite runs in. Dropped from 4B-2 (not contracted with a false logged-in assumption). Moves to trinn 5 once a deterministic authenticated fixture is established.",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "S",
+      "page": "Stats (#tab-stats)",
+      "finding": "#tab-stats is orphaned. renderDashboard (app.js:3689) returns at line 3698 (V3 path) before the legacy block, so renderYourGame (app.js:3940, only called from the dead line 3719), the #dash-your-game visibility toggle (3712) and the only Stats entry - the 'Full stats -> ' link with activateTab('stats') (3973) - are all dead code. #dash-your-game is never shown or populated regardless of rounds, and activateTab('stats') is never invoked from any live path. Seeding a finished round does NOT make Stats reachable.",
+      "decision": "BLOCKED/orphaned. The conditional-reachability contract was removed. No orphaned-guard is added: asserting Stats stays unreachable would lock the current broken behavior and make a later repair a test failure. Product decision to repair or remove #tab-stats is taken separately.",
+      "status": "BLOCKED/orphaned"
+    }
+  ],
+  "page_status": {
+    "Rounds": "READY",
+    "Rivals/Friends": "READY",
+    "Trophies": "READY",
+    "Approvals": "READY",
+    "Profile": "BLOCKED - cloud-gated (finding R), moves to trinn 5",
+    "Settings": "BLOCKED - cloud-gated (finding R), moves to trinn 5",
+    "Stats": "BLOCKED/orphaned - dead entry (finding S), no contract, no orphaned-guard",
+    "Insights (#tab-insights)": "BLOCKED/orphaned - modal covered separately as a surface",
+    "Courses (#tab-courses)": "BLOCKED/orphaned - no contract, no path"
+  },
+  "not_in_scope": [
+    "4B-3 flow-step (Scorecard) and disabled-entry (Landing)",
+    "4C Clubhouse deep pilot",
+    "4D negative mutation tests",
+    "shared modal a11y refactor (finding Q)",
+    "Courses/Insights page user-path decision",
+    "More-menu repair (finding O)",
+    "layout, visual and functional gates (steps 5-7)"
+  ]
+}

@@ -6231,6 +6231,15 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Ro
 .chd-box { position:absolute; background-size:100% 100%; background-repeat:no-repeat; }
 .chd-box.ch-tap { cursor:pointer; }
 .chd-box.ch-tap:active { filter:brightness(1.08); }
+/* Native <button> for the Clubhouse V3 nav icons (4B-2 a11y): visual parity with the former <div>.
+   Scoped to button.chd-box only — no global button reset. */
+button.chd-box {
+  -webkit-appearance:none; appearance:none;
+  margin:0; padding:0; border:0;
+  background-color:transparent;
+  color:inherit; font:inherit; line-height:normal; text-align:inherit;
+}
+button.chd-box:focus-visible { outline:2px solid var(--gold); outline-offset:2px; border-radius:6px; }
 .chd-tx { position:absolute; left:0; right:0; text-align:center; transform:translateY(-50%); line-height:1; text-shadow:0 2px 6px rgba(0,0,0,.55); pointer-events:none; }
 .chd-serif { font-family:'Playfair Display',Georgia,serif; font-weight:600; color:#F3EFEB; }
 .chd-lab { font-family:'Inter',system-ui,sans-serif; font-weight:400; color:#FBFBFA; opacity:.85; }
