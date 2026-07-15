@@ -10,9 +10,22 @@
 - State: default innlogget bruker
 - Version: 0.1
 - Owner: Mathias
-- Status: `DRAFT`  ← ikke endelig APPROVED. Scroll-policy er RESOLVED (beslutning #1, se §4). Gjenstår kun: ferdig token-kontroll (typografiskala). Settes ikke til APPROVED før det er gjort.
+- Status: `DRAFT` (hele kontrakten) — **strukturkjernen er PARTIAL / VERIFIED via trinn 4C**. Ikke endelig APPROVED: scroll-policy er RESOLVED (beslutning #1, se §4), men typografi (typografiskala) er fortsatt BLOCKED/DEFERRED og visuell fidelity/fullskjerm-baseline hører til trinn 7. Settes ikke til APPROVED før det er gjort.
 - Approved by: —
 - Approved date: —
+
+### 1b. Strukturkjerne — PARTIAL / VERIFIED (trinn 4C)
+
+Den **strukturelle kjernen** er validert gjennom 4C (dyp strukturpilot), men bare strukturen — ikke visuelt design:
+
+- **Status strukturdel:** `PARTIAL / VERIFIED`.
+- **Kanonisk komponentstruktur:** 17 komponenter med fordelingen **1/1/6/8/1** (Record 1, Today's Challenge 1, nav 6, stat 8, Breakscore 1), i rekkefølgen Record → Challenge → nav×6 → stat×8 → Breakscore. Låst via stabile ankere (`#clubhouse-grid`, `[data-clubhouse-component]`, native roller + tilgjengelige navn), ikke via posisjon/klassekjeder.
+- **Typografi:** fortsatt **BLOCKED/DEFERRED** (ingen godkjent typografiskala; funn AF: container-query-baserte sublabels under godkjent minimum — lesbarhetsfunn, ikke baseline).
+- **Ikke låst:** dagens spacing, dimensjoner, responsive fontverdier, intern DOM og fullskjermdesign.
+- **Visuell regresjon:** hører til et **senere trinn** (trinn 7); ingen godkjent fullskjerm-/visuell baseline er etablert.
+- **Stat-interaksjon** (klikk → detalj, task #121) er **ikke** del av 4C-strukturkjernen og kontraktfestes semantisk senere uten å låse dagens modalimplementasjon.
+
+Testbevis: `tests/ui/contracts/clubhouse-deep.contract.spec.ts` (3×4 = 12), funn Z–AH i `docs/app-machine/change-impact/trinn-4c.json`.
 
 ## 2. Produktmål
 

@@ -18,7 +18,7 @@ Alle fakta under er **verifisert mot faktisk DOM** i `Golf Dashboard.html` og `a
 
 | Navn | Nøkkel | Type | Aktiveringsmåte | Root-selector | Mount-policy | Visibility-policy | Implementasjon | Kontrakt | Strukturell test |
 |---|---|---|---|---|---|---|---|---|---|
-| Clubhouse | `dashboard` | primary-tab | synlig hovedfane | `#tab-dashboard` | always-mounted | default-visible | live | **draft** | partial (4A + 4B-1) |
+| Clubhouse | `dashboard` | primary-tab | synlig hovedfane | `#tab-dashboard` | always-mounted | default-visible | live | **draft (struktur PARTIAL/VERIFIED via 4C)** | **partial (4A + 4B-1 + 4C-struktur 1/1/6/8/1=17)** |
 | Tee Off | `round` | primary-tab | synlig hovedfane | `#tab-round` | always-mounted | default-hidden | live | missing | partial (4A + 4B-1) |
 | Rivalry | `rivalry` | primary-tab | synlig hovedfane | `#tab-rivalry` | always-mounted | default-hidden | live | missing | partial (4A + 4B-1) |
 | Feed | `feed` | primary-tab | synlig hovedfane | `#tab-feed` | always-mounted | default-hidden | live | missing | partial (4A + 4B-1) |
@@ -131,6 +131,36 @@ Autoritativ kilde for detaljerte funn (T, U, V, W, X, Y) og statusbegrunnelser �
 samlet suite 104. Lokalt verifisert: isolert `8 passed`, full suite `104 passed`, full suite med `CI=1`
 `104 passed` (chromium-390, chromium-412, webkit-390, webkit-412), ingen nye dist-endringer. Ingen
 appkode endret.
+
+### Etter trinn 4C — PARTIAL dyp Clubhouse-strukturkontrakt
+
+Første dype pilot. Låser den **varige komponenttaksonomien** til det live Clubhouse-gridet via stabile
+produktsemantiske ankere (`#clubhouse-grid`, `[data-clubhouse-component]`, native roller +
+tilgjengelige navn) — aldri `nth-child`, click-attributt-, bakgrunnsbilde-, koordinat- eller interne
+`.chd`-klassekjeder, og ingen eksakte px/%/font/typografiverdier eller screenshots.
+
+- **Kanonisk struktur (count-freeze):** `record → challenge → nav×6 → stat×8 → breakscore`, nøyaktig
+  **1/1/6/8/1 = 17**. Nav-rekkefølge (Rounds, Rivals, Trophies, Insights, Approvals, Handicap), Record
+  og de åtte statboksene som native buttons med tilgjengelige navn, Breakscore som ikke-interaktiv
+  `group`. Én `#clubhouse-grid` montert i `#dash-clubhouse-tail`, én challenge-slot uten separat
+  Resume-boks, ingen dupliserte roots, ingen `scale()`/global zoom, ingen horisontal overflow, samme
+  sekvens i alle fire prosjekter.
+- **Godkjent app-endring:** kun semantisk markup i `renderClubhouseDashboard()` — `#clubhouse-grid`,
+  `data-clubhouse-component` på alle 17 bokser, Record + 8 stat `<div>` → native `<button>` med
+  tilgjengelige navn, Breakscore `role="group"` (funn AH). Ingen CSS/layout/bilde/typografi-endring.
+
+**4C låser bevisst IKKE:** dagens spacing, dimensjoner, responsive fontverdier, intern DOM,
+komponentstørrelser, kolonner eller fullskjermdesign. **Typografi er BLOCKED/DEFERRED** (funn AF:
+container-query-baserte sublabels under godkjent minimum — lesbarhetsfunn, ikke baseline). **Ingen
+godkjent fullskjerm-/visuell baseline** — visuell regresjon hører til trinn 7. Stat-interaksjon
+(klikk → detalj, task #121) er **ikke** del av 4C-strukturkjernen og kontraktfestes semantisk senere.
+
+Autoritativ kilde for funn Z–AH — **ikke duplisert her**:
+`docs/app-machine/change-impact/trinn-4c.json`.
+
+**Testbevis:** `tests/ui/contracts/clubhouse-deep.contract.spec.ts` — 3 tester × 4 prosjekter = 12,
+samlet suite **116** i 6 filer. Lokalt verifisert: isolert `12 passed`, full lokal `116 passed`, lokal
+`CI=1` `116 passed` (chromium-390, chromium-412, webkit-390, webkit-412), dist uendret. **4D ikke startet.**
 
 ## Produktfunn
 

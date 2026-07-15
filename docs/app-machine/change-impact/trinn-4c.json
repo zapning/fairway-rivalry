@@ -1,0 +1,122 @@
+{
+  "task": "BUILD-PLAN v3 trinn 4C - PARTIAL deep structural contract for the Clubhouse (first deep pilot)",
+  "authoritative_head": "130c5d9 (4B-3 status commit) + the approved 4C semantic markup in renderClubhouseDashboard() (uncommitted)",
+  "work_mode": "IMPLEMENTATION",
+  "classification": "PRODUCT_WIDE",
+  "classification_rationale": "Deep pilot of the Clubhouse (app-shell primary surface) + a semantic markup change in renderClubhouseDashboard(). Per cross-cutting rule B this is product-wide.",
+  "risk_level": "LOW",
+  "risk_rationale": "App-code change is limited to the already-approved semantic markup in renderClubhouseDashboard(): #clubhouse-grid id, data-clubhouse-component taxonomy on all 17 boxes, Record + 8 stat divs -> native <button> with accessible names, Breakscore role=group + accessible name. No CSS, no layout/position/background/typography change (verified via the button.chd-box reset already in place from 4B-2). Otherwise tests + docs only.",
+  "app_code_changed": true,
+  "css_changed": false,
+  "ui_changed": false,
+  "functionality_changed": false,
+  "changed_files": [
+    "app.js",
+    "tests/ui/contracts/clubhouse-deep.contract.spec.ts",
+    "docs/app-machine/change-impact/trinn-4c.json",
+    "design/contracts/CONTRACT-REGISTER.md",
+    "design/contracts/clubhouse-default.md"
+  ],
+  "changed_files_note": "Only app.js (approved semantic markup) + the two new files are written in this step. CONTRACT-REGISTER.md and clubhouse-default.md are listed for LATER (after the local tests are green); they are NOT written now. styles.css is untouched.",
+  "app_code_change_detail": "renderClubhouseDashboard() markup only: (1) .chd wrapper gets id=clubhouse-grid; (2) data-clubhouse-component on all 17 boxes (record 1 / challenge 1 / nav 6 / stat 8 / breakscore 1); (3) Record + 8 stat <div onclick=openStatDetail(...)> -> <button type=button aria-label=...> (onclick preserved); (4) Breakscore stays a non-interactive <div> with role=group + aria-label=Breakscore. No CSS, no positions, no background images, no inner values/text changed.",
+  "count_freeze": {
+    "total": 17,
+    "distribution": { "record": 1, "challenge": 1, "nav": 6, "stat": 8, "breakscore": 1 },
+    "note": "Approved count-freeze. Finding AG: '16' was an outdated pre-Challenge count; 17 is canonical after Today's Challenge became its own slot and the separate Resume box was removed."
+  },
+  "stable_anchors": "#clubhouse-grid, [data-clubhouse-component] (record|challenge|nav|stat|breakscore), native roles + accessible names. NEVER nth-child, inline-style/click-attribute selectors, background images, coordinates, .chd class chains, or exact px/%/cqw/typography values.",
+  "canonical_sequence": ["record", "challenge", "nav x6", "stat x8", "breakscore"],
+  "nav_order": ["Rounds", "Rivals", "Trophies", "Insights", "Approvals", "Handicap"],
+  "stat_names": ["Your handicap", "Rounds played", "Lowest handicap", "Lowest round", "Nemesis", "Owned course", "Stronger nine", "Best trophy"],
+  "contract_status": "PARTIAL deep Clubhouse structural contract",
+  "contract_covers": [
+    "unique #tab-dashboard + Clubhouse is the active main page (body[data-tab]=dashboard, nav active)",
+    "exactly one #clubhouse-grid, mounted in #dash-clubhouse-tail, no duplicate main roots",
+    "canonical component sequence record -> challenge -> nav x6 -> stat x8 -> breakscore",
+    "exact counts 1/1/6/8/1 = 17",
+    "nav order + Record + 8 stat via native buttons with accessible names; Breakscore as non-interactive group",
+    "exactly one challenge/active-round slot; no separate mounted/visible Resume slot (#ch-resume-round unmounted, no ch-has-resume body state)",
+    "no duplicate Record / Breakscore / #clubhouse-grid",
+    "no transform: scale() on shell/dashboard/grid; no global zoom != 1; no horizontal overflow",
+    "same data-clubhouse-component sequence across all four projects"
+  ],
+  "explicitly_not_locked": [
+    "dimensions, component sizes, player layout, columns",
+    "typography (BLOCKED/DEFERRED)",
+    "spacing, internal component order beyond the taxonomy sequence",
+    "score-mode / internal box details",
+    "exact px / % / cqw values",
+    "background images, coordinates, .chd class chains, inline styles",
+    "screenshots / visual baselines (belongs to trinn 7)",
+    "today's layout and visual design (NOT an approved baseline)"
+  ],
+  "typography": "BLOCKED/DEFERRED - no approved authoritative typography scale exists (tokens: scale pendingApproval). No typography assertions in 4C.",
+  "baseline_statement": "Today's Clubhouse layout, typography and visual design are NOT an approved baseline. This contract covers structure, active state, mounting, exclusivity and layout invariants only. A future redesign may replace the internal DOM and update this contract; the durable [data-clubhouse-component] taxonomy is the stable surface.",
+  "expected_test_count": {
+    "new_tests": 3,
+    "projects": 4,
+    "new_total": 12,
+    "existing": 104,
+    "expected_total": 116,
+    "files_total": 6,
+    "note": "116 tests in 6 files after 4C."
+  },
+  "product_findings": [
+    {
+      "id": "Z",
+      "finding": "The live Clubhouse content is mounted via a misnamed wrapper: renderClubhouseTrophiesPreview() (app.js:11238) returns renderClubhouseDashboard(). renderClubhouseInsightsPreview() returns '' (dead). renderDashboard() returns early at 3698. The contract targets the live DOM (#clubhouse-grid), not function names.",
+      "status": "OPEN"
+    },
+    {
+      "id": "AA",
+      "finding": "renderClubhouseTopCard() (app.js:11351, .ch-top-card/.ch-rc-value) is orphaned dead code; it is not used as a selector.",
+      "status": "OPEN"
+    },
+    {
+      "id": "AB",
+      "finding": "Hidden shell remnants: .clubhouse-crest / .clubhouse-sign / .clubhouse-divider are display:none !important (styles.css:6227); #dash-quick-strip is cleared empty; seven hidden #dash-* divs + #identity-hero. Deliberately kept out of the contract.",
+      "status": "OPEN"
+    },
+    {
+      "id": "AC",
+      "finding": "The .chd grid is width-proportional (container-type:inline-size + % positions + cqw fonts). 390x844 vs 412x915 differ only in absolute scale, not structure/order/counts. The structural contract is viewport-independent.",
+      "status": "OPEN"
+    },
+    {
+      "id": "AD",
+      "finding": "No approved authoritative typography scale exists (tokens: only min sizes approved; the complete scale is pendingApproval - REFERENCES.md). Exact typography is BLOCKED/DEFERRED.",
+      "status": "OPEN"
+    },
+    {
+      "id": "AE",
+      "finding": "The five approved component references (header, navrow, record, statbox, breakscore) are proportion/design-reference-only - NOT authoritative for CSS px, dynamic values, typography scale, responsive rules or scroll-policy. Exact pixel/proportion visual diff belongs to trinn 7 (visual regression), not 4C.",
+      "status": "OPEN"
+    },
+    {
+      "id": "AF",
+      "finding": "Clubhouse dynamic sublabels use cqw sizes (e.g. 1.55cqw, 1.9cqw) that render ~6-7px at the reference container width - below the approved minimum readable tokens. This is a legibility/product finding, NOT an approved baseline, and reinforces typography DEFERRED. Not repaired here.",
+      "status": "OPEN"
+    },
+    {
+      "id": "AG",
+      "finding": "'16' was an outdated pre-Challenge box count. The canonical structure is 17 after Today's Challenge became its own slot (tasks #242/#272) and the separate Resume box was removed (task #271). No current authoritative doc states 16.",
+      "status": "RESOLVED (canonical = 17)"
+    },
+    {
+      "id": "AH",
+      "finding": "Record and the eight statistics boxes were interactive <div onclick=openStatDetail(...)> without native button semantics, accessible names or built-in keyboard support - the same a11y gap as the nav icons before 4B-2 (finding P). They were converted to native <button type=button> with accessible names, with no visual or functional change, which also provides the stable anchors 4C needs.",
+      "status": "RESOLVED (converted)"
+    }
+  ],
+  "deferred": [
+    "Stat-box click interaction (task #121) - to be contracted semantically later WITHOUT locking today's modal implementation.",
+    "Typography scale approval + golden visual snapshots (trinn 7).",
+    "Courses/Insights page user-path, More-menu (findings M/L/O)."
+  ],
+  "not_in_scope": [
+    "4D negative mutation tests",
+    "any Clubhouse visual/typography baseline",
+    "CSS changes, other app.js changes, register/BUILD-PLAN updates (done later, after green)",
+    "layout/visual/non-functional gates (steps 6-8)"
+  ]
+}
