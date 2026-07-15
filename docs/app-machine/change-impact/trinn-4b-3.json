@@ -1,0 +1,126 @@
+{
+  "task": "BUILD-PLAN v3 trinn 4B-3 - minimum contract for flow-step (Scorecard) + disabled-entry (Landing)",
+  "authoritative_head": "bb62c8a88b619c45f6660dd3d9e07f6f71c77297",
+  "work_mode": "IMPLEMENTATION",
+  "classification": "PRODUCT_WIDE",
+  "classification_rationale": "Touches the shared Tee Off round wizard (app-shell flow) and the app-wide disabled landing gate. Per cross-cutting rule B this defaults to product-wide.",
+  "risk_level": "LOW",
+  "risk_rationale": "No production code changes. Adds two deterministic UI contract tests only (flow-step reachability + disabled-entry negative). Worst realistic case is a failing test.",
+  "app_code_changed": false,
+  "markup_changed": false,
+  "css_changed": false,
+  "ui_changed": false,
+  "functionality_changed": false,
+  "changed_files": [
+    "tests/ui/contracts/flow-and-disabled.contract.spec.ts",
+    "docs/app-machine/change-impact/trinn-4b-3.json",
+    "design/contracts/CONTRACT-REGISTER.md"
+  ],
+  "changed_files_note": "No app.js / styles.css / other production file is changed. CONTRACT-REGISTER.md is listed LAST and is only updated after the local tests are actually green - not written in this step. No new fixture: the existing seedEmptyState (default profile + seeded SEED_COURSES) is sufficient; no Supabase, no production data, no writes.",
+  "activation_policy": "Real, visible user journey only. Scorecard: click the Tee Off nav button (role+name), click the visible Golf Round kind card (its own handler advances the wizard to step 1), click Next in the visible step 1, choose the first valid non-empty course via the real search widget (#r-course-search + suggestion click), click Next in the visible step 2. Landing: observe the booted DOM after the last landing-gate timer. Real visible interactions only - no inline click-attribute selectors and no internal tab/render/welcome-wizard functions.",
+  "determinism": "seedEmptyState for all; blocked service workers. Seeded SEED_COURSES make the course search deterministic. No production data, no network, no Supabase writes.",
+  "scorecard_contract": {
+    "root": "#rwz-step-3",
+    "nature": "dynamic render inside Tee Off (step 3 of the in-page wizard, toggled via style.display) - NOT a tab, hidden subpage or modal",
+    "active_main_tab": "round (Tee Off); nav#tabs button[data-tab=round] is .active",
+    "covers": [
+      "#rwz-step-3 visible",
+      "body[data-tab] = round and Tee Off nav button active",
+      "#rwz-step-1, #rwz-step-2 and #r-kind-panel hidden",
+      "exactly one #rwz-step-3",
+      "exactly one scorecard root (#r-hbh-scorecard)",
+      "at least one actual score surface visible (which one is not locked)",
+      "no horizontal overflow"
+    ],
+    "explicitly_not_covered": [
+      "exact width or height",
+      "current column count",
+      "current player layout",
+      "typography",
+      "spacing",
+      "internal component order",
+      "exact scorecard details",
+      "screenshot / visual baseline",
+      "alternative score modes (winner, total, nassau) and resume-active-round entry"
+    ],
+    "baseline_statement": "Today's Scorecard design is NOT an approved baseline. This contract covers only flow, active state and basic mounting. A future redesign may replace the internal DOM and update this contract without it being treated as a regression.",
+    "status": "PARTIAL"
+  },
+  "landing_contract": {
+    "nature": "disabled-entry",
+    "source_state": "No static #tab-landing exists. The landing/welcome overlay #wl-overlay is injected only by _showWelcomeWizard(), which frLandingGate() (app.js:2529-2545) never calls because `const show = false` (app.js:2533). Any existing #wl-overlay is removed. The gate re-runs on load + timers at 700/1600/3500 ms, so the disabled state is stable.",
+    "covers": [
+      "#wl-overlay not mounted (count 0) after the last (3500 ms) gate",
+      "body does not carry the wl-showing class",
+      "no landing control in the main navigation (nav#tabs button[data-tab=landing] count 0)",
+      "Clubhouse (#tab-dashboard) is still the active tab - landing did not take over"
+    ],
+    "method_note": "Disabled status is proven only by observing the booted DOM. The test never calls _showWelcomeWizard or window.activateTab.",
+    "status": "READY"
+  },
+  "expected_test_count": {
+    "new_tests": 2,
+    "projects": 4,
+    "new_total": 8,
+    "existing": 96,
+    "expected_total": 104,
+    "note": "1 Scorecard flow test + 1 Landing disabled-entry test, x4 projects (chromium-390, chromium-412, webkit-390, webkit-412)."
+  },
+  "product_findings": [
+    {
+      "id": "T",
+      "page": "Tee Off wizard",
+      "finding": "Step 1 and step 2 each render a button with the same accessible name (\"Next ->\"). Role + accessible name alone is ambiguous across the two steps.",
+      "decision": "Contract scopes the click to the visible wizard step (page.locator('#rwz-step-1'|'#rwz-step-2').getByRole('button', {name:/Next/})). No app change; scoping is by container id, not onclick. A future a11y pass could give distinct names.",
+      "status": "OPEN"
+    },
+    {
+      "id": "U",
+      "page": "Landing / welcome",
+      "finding": "The landing/welcome experience is hard-disabled via `const show = false` (app.js:2533). _showWelcomeWizard is latent code with no UI entry.",
+      "decision": "Registered, not repaired. Contracted only as a disabled-entry (negative). Re-enabling is a separate product decision.",
+      "status": "OPEN"
+    },
+    {
+      "id": "V",
+      "page": "Scorecard (alternative entry)",
+      "finding": "A round in progress jumps straight to the scorecard: activateTab-time code (app.js:3635-3637) calls rwzNext(3) + rwzBuildScorecard, bypassing steps 1-2.",
+      "decision": "Out of scope for the 4B-3 fresh representative flow. Belongs to the trinn 5 state matrix / 4C. Not contracted now.",
+      "status": "OPEN"
+    },
+    {
+      "id": "W",
+      "page": "Tee Off course selector",
+      "finding": "The \"Course\" control is not a native combobox. #r-course is a hidden <select style=display:none> (Golf Dashboard.html:560). The real user control is the text field #r-course-search plus a suggestion list of .course-suggestion-item[data-id] (div, mousedown handler, no role). rwzNext(2->3) only requires a non-empty #r-course value.",
+      "decision": "Contract drives the real widget (type a seeded course name, click the first suggestion). Registered as a11y/structure finding; no app change in 4B-3. A future pass could expose a properly-roled course control.",
+      "status": "OPEN"
+    },
+    {
+      "id": "X",
+      "page": "Tee Off kind picker",
+      "finding": "Tapping a .teeoff-card is the live way forward: the card's own handler (app.js:17173-17178) calls showRoundForm(kind), which reveals #r-form-golf (wizard step 1) and hides #r-kind-panel - including the CONTINUE button (#teeoff-continue) that lives inside it. CONTINUE is therefore NOT part of the live journey; it is only a fallback for the default selection when no card is tapped. Runtime confirmed: after opening Tee Off and clicking Golf Round, #rwz-step-1 becomes visible and CONTINUE is not present.",
+      "decision": "The authoritative journey clicks the visible Golf Round card (role + accessible name) and expects #rwz-step-1 to become visible. The contract has NO dependency on CONTINUE. Test and manifest describe the same journey. No app change in 4B-3.",
+      "status": "OPEN"
+    },
+    {
+      "id": "Y",
+      "page": "PWA install banner (global surface)",
+      "finding": "The PWA install banner (#pwa-install-banner, role=dialog, aria-label 'Install Fairway Rivalry') can appear asynchronously: showInstallBanner() adds the .show class ~2200 ms after load on mobile viewports (app.js:15146, gated by isMobileDevice()) and ~1500 ms after beforeinstallprompt (app.js:15132). In WebKit 390/412 it becomes visible mid-journey and, as a bottom overlay, intercepts pointer events - blocking real inputs (Next in step 1 on WebKit-390, Next in step 2 on WebKit-412). Chromium 390/412 did not surface it. seedEmptyState clears the session dismissed flag, so the banner is not pre-suppressed.",
+      "decision": "Stabilization only - NOT part of the Scorecard product contract. The test dismisses the banner through its existing visible user action: clicking the 'Later' button (#pwa-install-dismiss, role=button, accessible name 'Later'), which calls dismissInstallPrompt() -> removes .show and sets a session flag so it does not reappear. Guarded before the Next clicks the banner was observed to block, and retried once if it slips in during a click. No force, no internal function calls, no DOM/CSS/storage manipulation, no hidden selectors.",
+      "status": "OPEN"
+    }
+  ],
+  "flow_status": {
+    "Scorecard (#rwz-step-3)": "PARTIAL - flow + active state + basic mounting contracted; design not an approved baseline; winner/total/nassau + resume-active-round uncovered",
+    "Landing (disabled-entry)": "READY - negative disabled-entry contract"
+  },
+  "not_in_scope": [
+    "4C Clubhouse deep pilot",
+    "4D negative mutation tests",
+    "alternative score modes (winner/total/nassau) and resume-active-round entry",
+    "any Scorecard visual/layout/typography baseline",
+    "Profile/Settings/Stats/Courses and other 4B-2 findings",
+    "repairing findings T, U, V, W, X",
+    "layout, visual and functional gates (steps 6-8)"
+  ]
+}

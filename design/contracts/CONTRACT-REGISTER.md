@@ -32,8 +32,8 @@ Alle fakta under er **verifisert mot faktisk DOM** i `Golf Dashboard.html` og `a
 | Approvals | `approvals` | secondary-page | synlig V3-ikonknapp (Clubhouse) | `#tab-approvals` | always-mounted | default-hidden | live | missing | **4B-2: dekket (ikon)** |
 | Friends | `friends` | secondary-page | synlig V3-ikonknapp «Rivals» (Clubhouse) | `#tab-friends` | always-mounted | default-hidden | live | missing | **4B-2: dekket (ikon, Space)** |
 | Stats | `stats` | secondary-page | ingen levende inngang (død kode) | `#tab-stats` | always-mounted | default-hidden | live | missing | BLOCKED/orphaned |
-| Scorecard | `scorecard` | flow-step (under Tee Off) | funksjonsflyt (steg 3) | `#rwz-step-3` | always-mounted | conditionally-visible | live | missing | partial |
-| Landing | `landing` | disabled-entry | ikke montert | — | not-mounted | not-applicable | disabled | missing | partial |
+| Scorecard | `scorecard` | flow-step (under Tee Off) | ekte Tee Off-flyt → steg 3 | `#rwz-step-3` | always-mounted | conditionally-visible | live | missing | **4B-3: PARTIAL (flyt + montering)** |
+| Landing | `landing` | disabled-entry | ingen synlig inngang (kodegated av) | — | not-mounted | not-applicable | disabled | missing | **4B-3: negativ disabled-entry** |
 
 ## Presisering av dekningsgrad
 
@@ -98,6 +98,39 @@ Lokalt verifisert: isolert `24 passed`, full suite `96 passed`, full suite med `
 (chromium-390, chromium-412, webkit-390, webkit-412), ingen nye dist-endringer. Ingen appkode endret
 utover de godkjente 4B-2 button-/CSS-endringene (seks native `button.chd-box` + scopet reset med
 `:focus-visible` på `var(--gold)`).
+
+### Etter trinn 4B-3 — flow-step (Scorecard) + disabled-entry (Landing)
+
+Dekker de to gjenstående sidetypene i trinn 4B via **ekte, synlige brukerreiser** (rolle + tilgjengelig
+navn / den ekte søke-widgeten) — aldri inline click-attributt-selektor, `window`-tab-funksjon eller
+andre interne kall:
+
+- **Scorecard (flow-step, `#rwz-step-3`):** ekte reise fra hovednavigasjonen — Tee Off → klikk synlig
+  «Golf Round»-kort (auto-avancerer til steg 1) → Next i synlig steg 1 → velg bane via `#r-course-search`
+  + synlig forslag → Next i synlig steg 2. Kontrakten dekker **kun flyt, aktiv tilstand og grunnleggende
+  montering:** `#rwz-step-3` synlig, `body[data-tab]=round` + Tee Off-nav aktiv, steg 1/2 + `#r-kind-panel`
+  skjult, nøyaktig én `#rwz-step-3` og én scorekort-root, minst én synlig scoreflate, ingen horisontal
+  overflow. **Status: PARTIAL produktkontrakt.**
+- **Landing (disabled-entry):** negativ kontrakt — etter siste landing-gate (3500 ms) er `#wl-overlay`
+  ikke montert, ingen `data-tab="landing"` i navigasjonen, og Clubhouse forblir aktiv. Bevist kun ved å
+  observere booted DOM (ingen interne kall).
+
+**Scorecard-kontrakten låser bevisst IKKE:** dimensjoner, kortstørrelser, spillerlayout, kolonneoppsett,
+typografi, spacing, intern komponentrekkefølge, scoremodusdetaljer, screenshots eller dagens visuelle
+design. Dagens Scorecard-design er **ikke** en godkjent referanse/visuell baseline. En senere redesign
+kan erstatte intern DOM og oppdatere kontrakten uten at det regnes som regresjon. Scoremodusene
+winner/total/nassau og resume-active-round er **udekket**.
+
+PWA-installasjonsbanneret (finding Y) er en **separat global flate** — det avvises kun gjennom appens
+egen synlige «Later»-knapp og er ikke del av Scorecard-kontrakten.
+
+Autoritativ kilde for detaljerte funn (T, U, V, W, X, Y) og statusbegrunnelser — **ikke duplisert her**:
+`docs/app-machine/change-impact/trinn-4b-3.json`.
+
+**Testbevis:** `tests/ui/contracts/flow-and-disabled.contract.spec.ts` — 2 tester × 4 prosjekter = 8,
+samlet suite 104. Lokalt verifisert: isolert `8 passed`, full suite `104 passed`, full suite med `CI=1`
+`104 passed` (chromium-390, chromium-412, webkit-390, webkit-412), ingen nye dist-endringer. Ingen
+appkode endret.
 
 ## Produktfunn
 
