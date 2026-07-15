@@ -167,7 +167,7 @@ Leveres i fire uavhengige deler:
   fane, ingen duplikate slots, dynamiske verdier er DOM-innhold.
   - **4B-1 — primary tabs (Clubhouse, Tee Off, Rivalry, Feed, FGL): FINAL PASS**
   - **4B-2 — secondary pages + sekundærflater: FINAL PASS**
-  - **4B-3 — flow-step (Scorecard) og disabled-entry (Landing): NOT STARTED**
+  - **4B-3 — flow-step (Scorecard) og disabled-entry (Landing): FINAL PASS**
 - **(c) Clubhouse som første dype pilot:** full komponentrekkefølge og kontraktdekning. — **NOT STARTED**
 - **(d) Negative mutasjonstester:** feil headerasset, duplikat resume-slot eller feil kortrekkefølge
   **skal** gi rød test. — **NOT STARTED**
@@ -206,6 +206,30 @@ autentiseringsflyten, ikke profilmenyen). **Stats** (`#tab-stats`), **Courses** 
 er lagt til for Stats, slik at en senere reparasjon ikke blir en testfeil. Godkjente app-endringer:
 seks native `button.chd-box` + scopet CSS-reset med `:focus-visible` på `var(--gold)`. Produktfunn
 (P, Q, L, M, O, R, S) er registrert i `docs/app-machine/change-impact/trinn-4b-2.json`.
+
+**4B-3 — flow-step (Scorecard) + disabled-entry (Landing).** 2 nye tester (1 × 4 prosjekter hver),
+samlet suite **104**. Isolert liste `8 tests in 1 file`; isolert kjøring `8/8 passed`; full liste
+`104 tests in 5 files`; full lokal suite `104/104 passed`; lokal `CI=1` `104/104 passed`; GitHub Actions
+«UI foundation (Chromium + WebKit)»: **Success** for implementeringscommit
+`158d381cea385de38563d34da7b04fe25e1f1ecf`. Alle fire prosjekter (chromium-390 = 390×844,
+chromium-412 = 412×915, webkit-390, webkit-412). distBefore og distAfter identiske. Ingen appkode endret.
+
+**Scorecard** er kontraktfestet via en ekte brukerreise fra hovednavigasjonen (Tee Off → synlig
+«Golf Round»-kort → steg 1 → bane via `#r-course-search` + synlig forslag → steg 2). Kontrakten er
+fortsatt **kun en PARTIAL produktkontrakt**: den beskytter ekte flyt, aktiv Tee Off-side
+(`body[data-tab]=round` + aktiv nav), teknisk root `#rwz-step-3`, skjulte tidligere steg
+(`#rwz-step-1`/`#rwz-step-2`/`#r-kind-panel`), nøyaktig én `#rwz-step-3` og én scorekort-root, minst én
+synlig scoreflate, og ingen horisontal overflow. Den **låser ikke** dimensjoner, komponentstørrelser,
+spillerlayout, kolonner, typografi, spacing, intern rekkefølge, scoremodusdetaljer, screenshots eller
+dagens visuelle design. **Dagens Scorecard-design er ikke en godkjent visuell baseline.** Scoremodusene
+winner/total/nassau og resume-active-round er udekket.
+
+**Landing** er en **negativ disabled-entry-kontrakt**: etter siste landing-gate er `#wl-overlay` ikke
+montert, ingen `data-tab="landing"` finnes i navigasjonen, og Clubhouse forblir aktiv.
+
+Produktfunn (T, U, V, W, X, Y — inkl. det asynkrone PWA-installasjonsbanneret, avvist via appens egen
+synlige «Later»-knapp) er registrert i `docs/app-machine/change-impact/trinn-4b-3.json`. **4C og 4D er
+ikke startet.**
 
 ## Trinn 5 — Funksjonelle brukerreiser, tilstander og data-/API-kontrakter
 
