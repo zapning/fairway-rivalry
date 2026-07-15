@@ -168,7 +168,7 @@ Leveres i fire uavhengige deler:
   - **4B-1 — primary tabs (Clubhouse, Tee Off, Rivalry, Feed, FGL): FINAL PASS**
   - **4B-2 — secondary pages + sekundærflater: FINAL PASS**
   - **4B-3 — flow-step (Scorecard) og disabled-entry (Landing): FINAL PASS**
-- **(c) Clubhouse som første dype pilot:** full komponentrekkefølge og kontraktdekning. — **NOT STARTED**
+- **(c) Clubhouse som første dype pilot:** PARTIAL dyp strukturkontrakt (kanonisk komponenttaksonomi 1/1/6/8/1 = 17). — **FINAL PASS** (struktur; typografi/visuell fidelity utsatt)
 - **(d) Negative mutasjonstester:** feil headerasset, duplikat resume-slot eller feil kortrekkefølge
   **skal** gi rød test. — **NOT STARTED**
 
@@ -228,8 +228,26 @@ winner/total/nassau og resume-active-round er udekket.
 montert, ingen `data-tab="landing"` finnes i navigasjonen, og Clubhouse forblir aktiv.
 
 Produktfunn (T, U, V, W, X, Y — inkl. det asynkrone PWA-installasjonsbanneret, avvist via appens egen
-synlige «Later»-knapp) er registrert i `docs/app-machine/change-impact/trinn-4b-3.json`. **4C og 4D er
+synlige «Later»-knapp) er registrert i `docs/app-machine/change-impact/trinn-4b-3.json`. **4D er
 ikke startet.**
+
+**4C — Clubhouse som første dype pilot (PARTIAL dyp strukturkontrakt).** 3 nye tester (1 × 4 prosjekter
+hver), samlet suite **116** i 6 filer. Isolert liste `12 tests in 1 file`; isolert kjøring `12/12 passed`;
+full liste `116 tests in 6 files`; full lokal suite `116/116 passed`; lokal `CI=1` `116/116 passed`;
+GitHub Actions «UI foundation (Chromium + WebKit)»: **Success** for implementeringscommit
+`3a00b2a7dd2e80c04683c91d687bb50c281ec129`. 4B-2-regresjon `24/24 passed`; målrettet reproduksjon
+`10/10 passed`; distBefore = distAfter. Alle fire prosjekter (chromium-390, chromium-412, webkit-390,
+webkit-412).
+
+Låser den **kanoniske Clubhouse-strukturen 1/1/6/8/1 = 17** (Record → Today's Challenge → nav×6 →
+stat×8 → Breakscore) via stabile ankere (`#clubhouse-grid`, `[data-clubhouse-component]`, native roller
++ tilgjengelige navn) — ikke posisjon/klassekjeder. Godkjent app-endring: kun semantisk markup i
+`renderClubhouseDashboard()` (funn AH: Record + 8 stat `<div>` → native `<button>` med tilgjengelige
+navn; Breakscore `role="group"`; `#clubhouse-grid` + `data-clubhouse-component`). **Typografi og visuell
+fidelity er fortsatt BLOCKED/DEFERRED** (funn AF: container-query-sublabels under godkjent minimum —
+lesbarhetsfunn, ikke baseline). **Dagens dimensjoner, spacing, responsive fontverdier, interne DOM og
+fullskjermdesign er ikke godkjent baseline.** Funn Z–AH ligger i
+`docs/app-machine/change-impact/trinn-4c.json`. **4D er ikke startet.**
 
 ## Trinn 5 — Funksjonelle brukerreiser, tilstander og data-/API-kontrakter
 
