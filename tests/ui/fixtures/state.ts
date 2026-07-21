@@ -20,13 +20,43 @@ export const APP_KEY_PREFIXES = ['golfDashboard_', 'fgl_', 'fairway.', 'fairway_
 
 /**
  * Ensure a deterministic EMPTY state before any app script runs.
- * Runs as an init script (before app.js boots) so localStorage/sessionStorage start clean.
+ * Runs as an init script (before app.js boots) so localStorage/sessionStorage start clean, and
+ * neutralizes deferred, NON-contract async surfaces that otherwise fire on a timer/load and
+ * intermittently perturb activation in the fastest-booting project (observed reproducibly in
+ * chromium-390): the PWA install banner (change-impact finding Y) and the service-worker update
+ * toast + its `controllerchange -> location.reload()` path (app.js SW block). These land inside the
+ * focus()->Enter window and can stop `activateTab(...)` from taking effect. This is ENVIRONMENT
+ * control only — no contract assertion, timeout, retry, or product/contract code is changed.
  */
 export async function seedEmptyState(page: Page): Promise<void> {
   await page.addInitScript(() => {
     try {
       localStorage.clear();
       sessionStorage.clear();
+      // App-native suppression of the PWA install banner (installDismissedRecently() reads this).
+      sessionStorage.setItem('fairway.pwa.dismissed', '1');
+      // Neutralize ONLY the service-worker update/reload path (config already blocks SWs), without
+      // otherwise crippling the SW container:
+      //  - register() resolves to a minimal, harmless registration mock (no waiting/installing SW ->
+      //    no "new version" toast), so nothing hangs asynchronously.
+      //  - controllerchange (the mid-test reload trigger) is ignored; every other event type is
+      //    forwarded to the original addEventListener.
+      try {
+        const swc = (navigator as any).serviceWorker;
+        if (swc) {
+          swc.register = () => Promise.resolve({
+            installing: null, waiting: null, active: null, scope: '/',
+            update: () => Promise.resolve(),
+            unregister: () => Promise.resolve(true),
+            addEventListener: () => {}, removeEventListener: () => {},
+          });
+          const origAdd = swc.addEventListener.bind(swc);
+          swc.addEventListener = (type: string, listener: any, options?: any) => {
+            if (type === 'controllerchange') return;
+            return origAdd(type, listener, options);
+          };
+        }
+      } catch (e) { /* SW container unavailable */ }
     } catch (e) { /* storage may be unavailable in some contexts */ }
   });
 }

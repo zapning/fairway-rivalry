@@ -160,7 +160,27 @@ Autoritativ kilde for funn Z–AH — **ikke duplisert her**:
 
 **Testbevis:** `tests/ui/contracts/clubhouse-deep.contract.spec.ts` — 3 tester × 4 prosjekter = 12,
 samlet suite **116** i 6 filer. Lokalt verifisert: isolert `12 passed`, full lokal `116 passed`, lokal
-`CI=1` `116 passed` (chromium-390, chromium-412, webkit-390, webkit-412), dist uendret. **4D ikke startet.**
+`CI=1` `116 passed` (chromium-390, chromium-412, webkit-390, webkit-412), dist uendret.
+
+### Etter trinn 4D — negative mutasjonstester (kontraktene fanger brudd)
+
+4D **beviser** at kontraktene i 4A–4C faktisk blir røde når beskyttet struktur brytes, uten å svekke de
+ordinære grønne testene. Et isolert mutasjonsharness (`tests/ui/mutations/`, `playwright.mutation.config.ts`,
+`npm run test:mutations`) bygger en fersk, git-ignorert kopi per mutasjon (`.playwright-mut/<run>/<id>/`),
+patcher **kun** kopien, serverer den på dynamisk port og kjører den **uendrede** eksisterende kontrakten.
+
+- **Fem mutasjoner, røde av forventet årsak i alle fire prosjekter** (chromium-390/412, webkit-390/412):
+  M1 duplisert app-header → 4A-C2/C7 · M2 feil nav-rekkefølge → 4A-C4 · M3 duplisert Record → 4C Test 2/3 ·
+  M4 gjeninnført Resume-slot → 4C Test 3 · M5 `transform: scale()` på `#clubhouse-grid` → 4C Test 3.
+- Porter: `--list`-preflight (fire prosjekter) → diagnostic (gyldig rapport, fire prosjekter, exit 0) →
+  grønn baseline → M1–M5 → grønn sluttkontroll; mutation exit 0; `.playwright-mut/` ryddet.
+- **Ingen eksisterende kontrakt, assertion, timeout eller retry er endret.**
+- Miljøstabilisering i `tests/ui/fixtures/state.ts` (`seedEmptyState`): PWA-install-banneret undertrykkes
+  via appens egen `fairway.pwa.dismissed`-flagg, og SW-oppdateringsstien nøytraliseres (resolved
+  registration-mock; kun `controllerchange` ignoreres). Dette er miljøstabilisering, ikke svekking av
+  produktkontrakten. Ordinær suite: **116/116 grønn** (fire prosjekter), UI exit 0.
+
+Autoritativ kilde for mutasjonsdefinisjoner: `tests/ui/mutations/mutations.mjs`.
 
 ## Produktfunn
 

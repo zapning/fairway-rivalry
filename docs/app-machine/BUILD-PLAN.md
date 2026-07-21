@@ -157,7 +157,7 @@ Ferdig når: samme commit gir samme resultat lokalt og i CI, og en ren checkout 
 
 ## Trinn 4 — Produktomfattende strukturelle kontrakter
 
-**Status: IN PROGRESS**
+**Status: FINAL PASS**
 
 Leveres i fire uavhengige deler:
 
@@ -169,8 +169,9 @@ Leveres i fire uavhengige deler:
   - **4B-2 — secondary pages + sekundærflater: FINAL PASS**
   - **4B-3 — flow-step (Scorecard) og disabled-entry (Landing): FINAL PASS**
 - **(c) Clubhouse som første dype pilot:** PARTIAL dyp strukturkontrakt (kanonisk komponenttaksonomi 1/1/6/8/1 = 17). — **FINAL PASS** (struktur; typografi/visuell fidelity utsatt)
-- **(d) Negative mutasjonstester:** feil headerasset, duplikat resume-slot eller feil kortrekkefølge
-  **skal** gi rød test. — **NOT STARTED**
+- **(d) Negative mutasjonstester:** feil struktur (duplikat header/root, feil nav-rekkefølge, duplikat
+  Record, gjeninnført resume-slot, `scale()` på grid) **skal** gi rød test. Bevist via et isolert
+  mutasjonsharness: 5 mutasjoner røde av forventet årsak i 4/4 prosjekter. — **FINAL PASS**
 
 Ferdig når: (a) og (b) er grønne for alle hovedsider, (c) er dyp for Clubhouse, og hver mutasjon i
 (d) fanges. **Full dybdedekning av alle sider kreves ikke før apputvikling kan fortsette.**
@@ -247,7 +248,26 @@ navn; Breakscore `role="group"`; `#clubhouse-grid` + `data-clubhouse-component`)
 fidelity er fortsatt BLOCKED/DEFERRED** (funn AF: container-query-sublabels under godkjent minimum —
 lesbarhetsfunn, ikke baseline). **Dagens dimensjoner, spacing, responsive fontverdier, interne DOM og
 fullskjermdesign er ikke godkjent baseline.** Funn Z–AH ligger i
-`docs/app-machine/change-impact/trinn-4c.json`. **4D er ikke startet.**
+`docs/app-machine/change-impact/trinn-4c.json`. **4D: FINAL PASS (se under).**
+
+**4D — negative mutasjonstester (bevis at kontraktene fanger brudd).** Et isolert mutasjonsharness
+(`tests/ui/mutations/mutations.mjs` + `run-mutations.mjs`, `playwright.mutation.config.ts`,
+`npm run test:mutations`) bygger en fersk, git-ignorert kopi per mutasjon (`.playwright-mut/<run>/<id>/`),
+patcher **kun** kopien, serverer den på dynamisk port og kjører den **uendrede** eksisterende kontrakten.
+Fem mutasjoner er bevist deterministisk **røde av forventet årsak i alle fire prosjekter**
+(chromium-390, chromium-412, webkit-390, webkit-412): **M1** duplisert app-header → 4A-C2/C7;
+**M2** feil nav-rekkefølge → 4A-C4; **M3** duplisert Record → 4C Test 2/3; **M4** gjeninnført Resume-slot
+→ 4C Test 3; **M5** `transform: scale(.85)` på `#clubhouse-grid` → 4C Test 3. Porter: `--list`-preflight
+(fire prosjekter), diagnostic (gyldig rapport, fire prosjekter, exit 0), grønn baseline, deretter M1–M5
+og grønn sluttkontroll; mutation exit 0; `.playwright-mut/` ryddet. **Eksisterende kontrakter, assertions,
+timeouts og retries er uendret.**
+
+Under arbeidet ble en reprodusert **testmiljø-flake** stabilisert i den delte fixturen
+`tests/ui/fixtures/state.ts` (`seedEmptyState`): PWA-install-banneret undertrykkes via appens egen
+`fairway.pwa.dismissed`-flagg, og service-worker-oppdateringsstien nøytraliseres (resolved
+registration-mock; **kun** `controllerchange` ignoreres, andre eventtyper videresendes). Dette er
+**miljøstabilisering, ikke svekking av produktkontrakten** — ingen assertion/timeout/retry/produksjonskode
+er endret. Ordinær suite er **116/116 grønn** (alle fire prosjekter), UI exit 0.
 
 ## Trinn 5 — Funksjonelle brukerreiser, tilstander og data-/API-kontrakter
 

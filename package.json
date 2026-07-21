@@ -7,6 +7,7 @@
     "serve:test": "node build-dist.mjs && node serve-dist.mjs 3100",
     "test:ui": "playwright test -c playwright.config.ts",
     "test:ui:report": "playwright show-report playwright-report/ui",
+    "test:mutations": "node tests/ui/mutations/run-mutations.mjs",
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report"
   },
